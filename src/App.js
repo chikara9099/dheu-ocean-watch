@@ -221,9 +221,9 @@ function Home() {
       <section className="py-20 bg-gradient-to-r from-slate-800 via-slate-900 to-slate-800 text-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Meet the SARgonautes</h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Meet the SARgonauts</h2>
             <p className="text-slate-300 max-w-2xl mx-auto text-lg">
-              Our dedicated team of researchers and scientists committed to advancing ocean health monitoring
+              Our dedicated team of researchers and enthusiasts committed to advancing ocean health monitoring
             </p>
           </div>
 

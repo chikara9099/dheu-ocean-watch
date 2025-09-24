@@ -47,16 +47,8 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 font-sans text-gray-800 relative overflow-x-hidden">
-      
-      {/* Animated Background Elements */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-20 left-10 w-96 h-96 bg-blue-200/20 rounded-full mix-blend-multiply filter blur-xl animate-pulse"></div>
-        <div className="absolute bottom-20 right-10 w-80 h-80 bg-cyan-200/20 rounded-full mix-blend-multiply filter blur-xl animate-pulse delay-1000"></div>
-        <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-purple-200/20 rounded-full mix-blend-multiply filter blur-xl animate-pulse delay-500"></div>
-      </div>
-
-      {/* Header / Navbar */}
+    <>
+      {/* Header / Navbar (Sticky) */}
       <header
         className="bg-white/90 backdrop-blur-md shadow-sm sticky top-0 z-50 transition-all duration-300 hover:shadow-lg border-b border-blue-100/50"
         style={{ height: '120px' }}
@@ -94,6 +86,14 @@ const Dashboard = () => {
           </nav>
         </div>
       </header>
+
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 font-sans text-gray-800 relative overflow-x-hidden">
+      {/* Animated Background Elements */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-20 left-10 w-96 h-96 bg-blue-200/20 rounded-full mix-blend-multiply filter blur-xl animate-pulse"></div>
+        <div className="absolute bottom-20 right-10 w-80 h-80 bg-cyan-200/20 rounded-full mix-blend-multiply filter blur-xl animate-pulse delay-1000"></div>
+        <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-purple-200/20 rounded-full mix-blend-multiply filter blur-xl animate-pulse delay-500"></div>
+      </div>
 
       {/* Hero Header */}
       <section className="relative py-16 px-4 sm:px-8">
@@ -373,7 +373,8 @@ const Dashboard = () => {
           </div>
         </div>
       </footer>
-    </div>
+      </div>
+    </>
   );
 };
 
