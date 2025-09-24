@@ -189,7 +189,7 @@ const Dashboard = () => {
           <div className="bg-white/60 backdrop-blur-sm rounded-3xl shadow-xl overflow-hidden border border-white/30 hover:shadow-2xl transform hover:-translate-y-2 transition-all duration-500 group">
             <div className="relative overflow-hidden">
               <img
-                src="https://images.unsplash.com/photo-1686061593213-98dad7c599b9?auto=format&fit=clip&w=800&q=80"
+                src="/assets/data.avif"
                 alt="Digital dashboard displaying oceanic data and environmental indicators"
                 className="w-full h-72 object-cover transition-transform duration-700 group-hover:scale-110"
               />
@@ -218,7 +218,7 @@ const Dashboard = () => {
           <div className="bg-white/60 backdrop-blur-sm rounded-3xl shadow-xl overflow-hidden border border-white/30 hover:shadow-2xl transform hover:-translate-y-2 transition-all duration-500 group">
             <div className="relative overflow-hidden">
               <img
-                src="https://images.unsplash.com/photo-1600418725276-a399595aac45?auto=format&fit=clip&w=800&q=80"
+                src="/assets/moyla.avif"
                 alt="Interactive 2D ocean simulator illustrating pollution and temperature"
                 className="w-full h-72 object-cover transition-transform duration-700 group-hover:scale-110"
               />

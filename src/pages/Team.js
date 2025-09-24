@@ -30,19 +30,19 @@ const Team = () => {
       name: "Farhan Labib",
       role: "Some role",
       bio: "Role niye bhekbhek.",
-      image: "/assets/team-1.avif", 
+      image: "/assets/fala.jpg", 
     },
     {
       name: "Fatima Sad Sudipta",
       role: "Some role",
       bio: "Role niye bhekbhek.",
-      image: "/assets/team-2.avif",
+      image: "/assets/fss.jpg",
     },
     {
       name: "Shahriar Alam Patwary",
       role: "Some role",
       bio: "Role niye bhekbhek.",
-      image: "/assets/team-3.avif",
+      image: "/assets/sap.png",
     },
     {
       name: "Tasnim Tamal",
