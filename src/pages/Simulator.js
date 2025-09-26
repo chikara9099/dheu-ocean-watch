@@ -1,405 +1,161 @@
 import React, { useRef, useEffect, useState } from 'react';
 
-class DataGenerator {
-  constructor() {
-    this.regions = {
-      bayOfBengal: { lat: [15, 25], lng: [85, 95] },
-      gulfOfMexico: { lat: [20, 30], lng: [-95, -85] },
-      southChinaSea: { lat: [10, 25], lng: [105, 120] },
-      global: { lat: [-60, 60], lng: [-180, 180] }
-    };
-
-    this.majorPorts = [
-      { name: "Shanghai", lat: 31.2304, lng: 121.4737, country: "China" },
-      { name: "Singapore", lat: 1.3521, lng: 103.8198, country: "Singapore" },
-      { name: "Rotterdam", lat: 51.9244, lng: 4.4777, country: "Netherlands" },
-      { name: "Los Angeles", lat: 33.7701, lng: -118.1937, country: "USA" },
-      { name: "Dubai", lat: 25.2048, lng: 55.2708, country: "UAE" },
-      { name: "Hamburg", lat: 53.5511, lng: 9.9937, country: "Germany" },
-      { name: "Mumbai", lat: 19.076, lng: 72.8777, country: "India" },
-      { name: "Hong Kong", lat: 22.3193, lng: 114.1694, country: "Hong Kong" },
-      { name: "Busan", lat: 35.1796, lng: 129.0756, country: "South Korea" },
-      { name: "New York", lat: 40.6892, lng: -74.0445, country: "USA" }
-    ];
-  }
-
-  randomInRange(min, max) {
-    return Math.random() * (max - min) + min;
-  }
-
-  generateOilSpills(count = 50) {
-    const spills = [];
-    for (let i = 0; i < count; i++) {
-      const lat = this.randomInRange(-60, 60);
-      const lng = this.randomInRange(-180, 180);
-      const severity = Math.random();
-      const age = Math.random() * 30;
-      const size = Math.random() * 1000 + 100;
-
-      // Create a small polygon (circle approximation) for each spill
-      const radius = Math.sqrt(size) / 100; // scale for visualization
-      const points = [];
-      for (let j = 0; j <= 24; j++) {
-        const angle = (2 * Math.PI * j) / 24;
-        const dLat = radius * Math.cos(angle);
-        const dLng = radius * Math.sin(angle) / Math.cos(lat * Math.PI / 180);
-        points.push([lng + dLng, lat + dLat]);
-      }
-
-      spills.push({
-        id: `spill_${i + 1}`,
-        lat,
-        lng,
-        severity,
-        age,
-        size,
-        detectionDate: new Date(Date.now() - age * 24 * 60 * 60 * 1000),
-        confidence: 0.6 + Math.random() * 0.4,
-        source: ['Ship accident', 'Pipeline leak', 'Platform spill'][Math.floor(Math.random() * 3)],
-        weatherConditions: {
-          windSpeed: Math.random() * 30 + 5,
-          waveHeight: Math.random() * 5 + 0.5,
-          visibility: Math.random() * 10 + 5,
-          temperature: Math.random() * 30 + 10
-        },
-        sarImageId: `SAR_${Math.floor(Math.random() * 1000)}`,
-        color: severity > 0.7 ? '#ff0000' : severity > 0.4 ? '#ff8800' : '#ffff00',
-        label: `Oil Spill ${i + 1}`,
-        // GeoJSON polygon
-        polygon: {
-          type: 'Polygon',
-          coordinates: [points]
-        }
-      });
-    }
-    return spills;
-  }
-
-  generateTradeRoutes(count = 20) {
-    const routes = [];
-    const ports = this.majorPorts;
-
-    for (let i = 0; i < count; i++) {
-      const startPort = ports[Math.floor(Math.random() * ports.length)];
-      let endPort;
-      do {
-        endPort = ports[Math.floor(Math.random() * ports.length)];
-      } while (endPort === startPort);
-
-      routes.push({
-        id: `route_${i + 1}`,
-        startPort: startPort.name,
-        endPort: endPort.name,
-        startLat: startPort.lat,
-        startLng: startPort.lng,
-        endLat: endPort.lat,
-        endLng: endPort.lng,
-        distance: Math.round(this.calculateDistance(startPort.lat, startPort.lng, endPort.lat, endPort.lng)),
-        estimatedTime: Math.round((Math.random() * 20 + 5)),
-        riskLevel: ['high', 'medium', 'low'][Math.floor(Math.random() * 3)],
-        cargo: ['Crude Oil', 'Container', 'LNG', 'Chemicals'][Math.floor(Math.random() * 4)],
-        frequency: Math.floor(Math.random() * 20) + 1,
-        color: { high: '#ff4444', medium: '#ffaa44', low: '#44ff44' }[Math.random() > 0.7 ? 'high' : Math.random() > 0.4 ? 'medium' : 'low'],
-        strokeWidth: 2 + Math.random() * 3
-      });
-    }
-    return routes;
-  }
-
-  generateSARCoverage(count = 30) {
-    const coverage = [];
-    for (let i = 0; i < count; i++) {
-      const lat = this.randomInRange(-60, 60);
-      const lng = this.randomInRange(-180, 180);
-      const swathWidth = 200 + Math.random() * 300;
-
-      // Rectangle polygon for SAR swath
-      const poly = this.generatePolygon(lat, lng, swathWidth);
-
-      coverage.push({
-        id: `sar_${i + 1}`,
-        centerLat: lat,
-        centerLng: lng,
-        swathWidth,
-        length: 400 + Math.random() * 200,
-        satellite: ['Sentinel-1A', 'RADARSAT-2', 'TerraSAR-X'][Math.floor(Math.random() * 3)],
-        acquisitionTime: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000),
-        resolution: Math.random() * 20 + 5,
-        polarization: Math.random() > 0.5 ? 'VV' : 'VH',
-        incidenceAngle: 20 + Math.random() * 25,
-        orbitDirection: Math.random() > 0.5 ? 'Ascending' : 'Descending',
-        // GeoJSON polygon
-        polygon: {
-          type: 'Polygon',
-          coordinates: poly
-        },
-        quality: 0.7 + Math.random() * 0.3,
-        cloudCover: Math.random() * 0.3,
-        color: '#ffaa44',
-        opacity: 0.6
-      });
-    }
-    return coverage;
-  }
-
-  generateMajorPorts() {
-    return this.majorPorts.map((port, idx) => ({
-      ...port,
-      id: `port_${idx + 1}`,
-      size: Math.random() * 5 + 2,
-      throughput: Math.floor(Math.random() * 50000000) + 1000000,
-      type: ['Container', 'Oil Terminal', 'Bulk'][Math.floor(Math.random() * 3)],
-      facilities: ['Container Cranes', 'Oil Storage'].slice(0, 1 + Math.floor(Math.random() * 2))
-    }));
-  }
-
-  calculateDistance(lat1, lon1, lat2, lon2) {
-    const R = 6371;
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
-  }
-
-  generatePolygon(lat, lng, widthKm) {
-    const widthDeg = widthKm / 111;
-    const points = [
-      [lng - widthDeg / 2, lat - 1],
-      [lng + widthDeg / 2, lat - 1],
-      [lng + widthDeg / 2, lat + 1],
-      [lng - widthDeg / 2, lat + 1],
-      [lng - widthDeg / 2, lat - 1]
-    ];
-    return [points];
-  }
-}
-
-// === GlobeController (React-compatible version) ===
-class GlobeController {
-  constructor(globeInstance) {
-    this.globe = globeInstance;
-    this.oilSpills = [];
-    this.tradeRoutes = [];
-    this.sarCoverage = [];
-    this.ports = [];
-    this.currentMode = 'oil-spills';
-    this.showLabels = true;
-    this.showArcs = true;
-    this.pointSize = 0.5;
-    this.setupInteractions();
-  }
-
-  setupInteractions() {
-    this.globe
-      .onPointClick((point) => point && this.showDetails(point, 'point'))
-      .onArcClick((arc) => arc && this.showDetails(arc, 'arc'))
-      .onPolygonClick((polygon) => polygon && this.showDetails(polygon, 'polygon'));
-  }
-
-  showDetails(item, type) {
-    window.dispatchEvent(new CustomEvent('globe:showDetails', { detail: { item, type } }));
-  }
-
-  setOilSpills(spills) {
-    this.oilSpills = spills;
-    this.updateView();
-  }
-
-  setTradeRoutes(routes) {
-    this.tradeRoutes = routes;
-    this.updateView();
-  }
-
-  setSARCoverage(coverage) {
-    this.sarCoverage = coverage;
-    this.updateView();
-  }
-
-  setPorts(ports) {
-    this.ports = ports;
-    this.updateView();
-  }
-
-  setMode(mode) {
-    this.currentMode = mode;
-    this.updateView();
-  }
-
-  updateView() {
-    switch (this.currentMode) {
-      case 'oil-spills':
-        this.renderOilSpills();
-        break;
-      case 'trade-routes':
-        this.renderTradeRoutes();
-        break;
-      case 'sar-data':
-        this.renderSARData();
-        break;
-      default:
-        this.renderOilSpills();
-    }
-  }
-
-  renderOilSpills() {
-    // Defensive: filter only valid polygons and keep mapping to parent oilSpill
-    const validPairs = this.oilSpills
-      .map(s => ({ polygon: s.polygon, color: s.color, label: s.label, size: s.size }))
-      .filter(s => s.polygon && typeof s.polygon === 'object' && s.polygon.type === 'Polygon' && Array.isArray(s.polygon.coordinates));
-    this.globe
-      .polygonsData(validPairs.map(s => s.polygon))
-      .polygonCapColor((d, i) => validPairs[i]?.color || '#ff0000')
-      .polygonSideColor((d, i) => validPairs[i]?.color || '#ff0000')
-      .polygonStrokeColor('#222')
-      .polygonAltitude(0.001)
-      .polygonLabel((d, i) => `<b>${validPairs[i]?.label || 'Oil Spill'}</b><br>Size: ${validPairs[i]?.size?.toFixed(0) || '?'} km²`)
-      .labelsData(this.showLabels ? this.ports : [])
-      .labelLat('lat').labelLng('lng').labelText('name').labelColor('#4444ff')
-      .pointsData([]).arcsData([]);
-  }
-
-  renderTradeRoutes() {
-    this.globe
-      .arcsData(this.tradeRoutes)
-      .arcStartLat('startLat').arcStartLng('startLng')
-      .arcEndLat('endLat').arcEndLng('endLng')
-      .arcColor('color').arcStroke(d => d.strokeWidth)
-      .arcAltitude(0.005).arcDashLength(0.4).arcDashGap(0.2).arcDashAnimateTime(2000)
-      .pointsData(this.ports)
-      .pointLat('lat').pointLng('lng').pointColor('#4444ff').pointRadius(0.8)
-      .labelsData(this.showLabels ? this.ports : [])
-      .labelLat('lat').labelLng('lng').labelText('name').labelColor('#ffffff')
-      .polygonsData([]);
-  }
-
-  renderSARData() {
-    // Defensive: filter only valid polygons and keep mapping to parent sarCoverage
-    const validPairs = this.sarCoverage
-      .map(s => ({ polygon: s.polygon, color: s.color, satellite: s.satellite }))
-      .filter(s => s.polygon && typeof s.polygon === 'object' && s.polygon.type === 'Polygon' && Array.isArray(s.polygon.coordinates));
-    this.globe
-      .polygonsData(validPairs.map(s => s.polygon))
-      .polygonCapColor((d, i) => validPairs[i]?.color || '#ffaa44')
-      .polygonSideColor((d, i) => validPairs[i]?.color || '#ffaa44')
-      .polygonStrokeColor('#fff')
-      .polygonAltitude(0.05)
-      .polygonLabel((d, i) => `SAR: ${validPairs[i]?.satellite || ''}`)
-      .pointsData(this.oilSpills.slice(0, 10))
-      .pointLat('lat').pointLng('lng').pointColor('#ff4444').pointRadius(0.5)
-      .arcsData([]).labelsData([]);
-  }
-}
-
-// === UIController (Modal handler) ===
-const showDetailModal = (item, type) => {
-  const modal = document.createElement('div');
-  modal.className = 'fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4';
-  modal.innerHTML = `
-    <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full max-h-96 overflow-y-auto border">
-      <div class="p-6">
-        <div class="flex justify-between items-start mb-4">
-          <h3 class="text-xl font-bold text-gray-800">${type === 'point' ? 'Oil Spill' : type === 'arc' ? 'Trade Route' : 'SAR Coverage'}</h3>
-          <button onclick="this.closest('.fixed').remove()" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
-        </div>
-        <div class="text-gray-600 space-y-2 text-sm">
-          ${Object.entries(item)
-            .filter(([key]) => !['geometry', 'waypoints', 'coverage'].includes(key))
-            .map(([key, value]) => {
-              if (value instanceof Date) value = value.toLocaleString();
-              return `<p><strong>${key}:</strong> ${value}</p>`;
-            })
-            .join('')}
-        </div>
-      </div>
-    </div>
-  `;
-  document.body.appendChild(modal);
-};
-
 export default function Simulator() {
-  const globeEl = useRef(null);
-  const [mode, setMode] = useState('oil-spills');
-  const controllerRef = useRef(null);
+  const fullscreenRef = useRef(null);
 
-  useEffect(() => {
-    // Load globe.gl dynamically
-    const loadGlobe = async () => {
-      const World = (await import('globe.gl')).default;
-      const generator = new DataGenerator();
+  const [activeTab, setActiveTab] = useState('simulator');
 
-      const world = World()(globeEl.current)
-        .backgroundColor('#0d141a')
-        .globeImageUrl('//unpkg.com/three-globe/example/img/earth-night.jpg')
-        .backgroundImageUrl('//unpkg.com/three-globe/example/img/night-sky.png');
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [fullscreenContent, setFullscreenContent] = useState(null);
 
-      const controller = new GlobeController(world);
-      controllerRef.current = controller;
+  const [isPlaying, setIsPlaying] = useState(true);
+  const [currentFrame, setCurrentFrame] = useState(0);
 
-      // Generate initial data
-      const oilSpills = generator.generateOilSpills(30);
-      const tradeRoutes = generator.generateTradeRoutes(15);
-      const sarCoverage = generator.generateSARCoverage(20);
-      const ports = generator.generateMajorPorts();
-
-      controller.setOilSpills(oilSpills);
-      controller.setTradeRoutes(tradeRoutes);
-      controller.setSARCoverage(sarCoverage);
-      controller.setPorts(ports);
-      controller.setMode(mode);
-
-      // Listen for detail events
-      window.addEventListener('globe:showDetails', (e) => {
-        const { item, type } = e.detail;
-        showDetailModal(item, type);
-      });
-
-      return () => {
-        window.removeEventListener('globe:showDetails', () => {});
-      };
-    };
-
-    loadGlobe();
-  }, []);
-
-  useEffect(() => {
-    if (controllerRef.current) {
-      controllerRef.current.setMode(mode);
+  const simulatorSections = [
+    {
+      id: 'oil-slick',
+      title: 'Oil Slick Detection',
+      description: 'Real-time monitoring of oil spill incidents across global waters',
+      currentImage: '/assets/oil.jpg',
+      status: 'Active Monitoring',
+      alerts: 3,
+      coverage: '89%',
+    },
+    {
+      id: 'temperature',
+      title: 'Sea Surface Temperature',
+      description: 'Tracking thermal changes and their impact on marine ecosystems',
+      currentImage: '/assets/sea.jpeg',
+      status: '↑ 1.2°C Above Normal',
+      alerts: 7,
+      coverage: '94%',
+    },
+    {
+      id: 'waste',
+      title: 'Waste Accumulation',
+      description: 'Monitoring plastic debris and marine pollution hotspots',
+      currentImage: '/assets/waste.jpeg',
+      status: '+15% This Month',
+      alerts: 12,
+      coverage: '76%',
     }
-  }, [mode]);
+  ];
+
+  // TIME LAPSE MILTESE NA
+  const timelapseFrames = {
+    'oil-slick': [
+      { label: "Jan 2024", status: "2 Minor Spills", severity: "low", image: "/assets/oil.jpg" },
+      { label: "Apr 2024", status: "5 Active Leaks", severity: "medium", image: "/assets/random.jpeg" },
+      { label: "Jul 2024", status: "8 Major Incidents", severity: "high", image: "" },
+      { label: "Oct 2024", status: "12 Critical Zones", severity: "critical", image: "/assets/some.jpeg" },
+      { label: "Dec 2024", status: "15 Emergency Areas", severity: "emergency", image: "/assets/hack.jpeg" },
+    ],
+    'temperature': [
+      { label: "Jan 2024", status: "+0.2°C", severity: "low", image: "" },
+      { label: "Apr 2024", status: "+0.6°C", severity: "medium", image: "" },
+      { label: "Jul 2024", status: "+1.1°C", severity: "high", image: "" },
+      { label: "Oct 2024", status: "+1.8°C", severity: "critical", image: "" },
+      { label: "Dec 2024", status: "+2.3°C", severity: "emergency", image: "" },
+    ],
+    'waste': [
+      { label: "Jan 2024", status: "5% Increase", severity: "low", image: "" },
+      { label: "Apr 2024", status: "12% Increase", severity: "medium", image: "" },
+      { label: "Jul 2024", status: "28% Increase", severity: "high", image: "" },
+      { label: "Oct 2024", status: "45% Increase", severity: "critical", image: "" },
+      { label: "Dec 2024", status: "67% Increase", severity: "emergency", image: "" },
+    ]
+  };
+
+  // Data thresholds
+  const dataThresholds = [
+    {
+      category: 'Oil Spill Detection',
+      thresholds: [
+        { level: 'Safe', range: '0-5 incidents/month', color: 'from-green-400 to-green-600', status: 'Normal operations' },
+        { level: 'Caution', range: '6-15 incidents/month', color: 'from-yellow-400 to-orange-500', status: 'Increased monitoring' },
+        { level: 'Warning', range: '16-30 incidents/month', color: 'from-orange-500 to-red-500', status: 'Alert systems active' },
+        { level: 'Critical', range: '30+ incidents/month', color: 'from-red-500 to-red-700', status: 'Emergency protocols' }
+      ]
+    },
+    {
+      category: 'Sea Surface Temperature',
+      thresholds: [
+        { level: 'Normal', range: '±0.5°C from baseline', color: 'from-blue-400 to-blue-600', status: 'Ecosystem stable' },
+        { level: 'Elevated', range: '+0.5°C to +1.0°C', color: 'from-yellow-400 to-orange-500', status: 'Marine life adapting' },
+        { level: 'High', range: '+1.0°C to +2.0°C', color: 'from-orange-500 to-red-500', status: 'Coral bleaching risk' },
+        { level: 'Extreme', range: '+2.0°C and above', color: 'from-red-500 to-red-700', status: 'Ecosystem disruption' }
+      ]
+    },
+    {
+      category: 'Marine Waste Accumulation',
+      thresholds: [
+        { level: 'Minimal', range: '0-10% increase/year', color: 'from-green-400 to-green-600', status: 'Cleanup effective' },
+        { level: 'Moderate', range: '11-25% increase/year', color: 'from-yellow-400 to-orange-500', status: 'Monitoring required' },
+        { level: 'Severe', range: '26-50% increase/year', color: 'from-orange-500 to-red-500', status: 'Intervention needed' },
+        { level: 'Critical', range: '50%+ increase/year', color: 'from-red-500 to-red-700', status: 'Emergency cleanup' }
+      ]
+    }
+  ];
+
+  // Auto-increment time-lapse
+  useEffect(() => {
+    if (!isPlaying) return;
+    const interval = setInterval(() => {
+      setCurrentFrame(f => (f + 1) % 5);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [isPlaying]);
+
+  // Fullscreen done
+  const enterFullscreen = (content) => {
+    setFullscreenContent(content);
+    setIsFullscreen(true);
+    document.body.style.overflow = 'hidden';
+  };
+
+  const exitFullscreen = () => {
+    setIsFullscreen(false);
+    setFullscreenContent(null);
+    document.body.style.overflow = 'auto';
+  };
+
+  // Escape key back
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && isFullscreen) {
+        exitFullscreen();
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isFullscreen]);
+
+  const getSeverityColor = (severity) => {
+    const colors = {
+      low: 'from-green-400 to-green-600',
+      medium: 'from-yellow-400 to-orange-500',
+      high: 'from-orange-500 to-red-500',
+      critical: 'from-red-500 to-red-700',
+      emergency: 'from-red-700 to-red-900'
+    };
+    return colors[severity] || 'from-gray-400 to-gray-600';
+  };
 
   return (
     <>
-      {/* Header / Navbar */}
-      <header
-        className="bg-white/90 backdrop-blur-md shadow-sm sticky top-0 z-50 transition-all duration-300 hover:shadow-lg border-b border-blue-100/50"
-        style={{ height: '120px' }}
-      >
+      {/* Header */}
+      <header className="bg-white/95 backdrop-blur-md shadow-sm sticky top-0 z-40 transition-all duration-300 hover:shadow-lg border-b border-blue-100/50" style={{ height: '120px' }}>
         <div className="container mx-auto px-4 flex items-center justify-between h-full">
-          {/* Logo */}
           <a href="/" className="block transform hover:scale-105 transition-transform duration-200">
-            <img
-              src="/assets/DHEU.png"
-              alt="DHEU logo"
-              className="h-16 md:h-20 transition-all duration-200"
-            />
+            <img src="/assets/DHEU.png" alt="DHEU logo" className="h-16 md:h-20 transition-all duration-200" />
           </a>
 
-          {/* Navigation */}
           <nav>
             <ul className="flex space-x-8">
-              {[
-                { name: 'Home', href: '/' },
-                { name: 'Dashboard', href: '/dashboard' },
-                { name: 'Simulator', href: '/simulator' },
-                { name: 'Team', href: '/team' },
-              ].map((item) => (
-                <li key={item.name}>
-                  <a
-                    href={item.href}
-                    className="text-gray-700 hover:text-blue-600 font-medium transition-all duration-200 relative group"
-                  >
-                    {item.name}
+              {['Home', 'Dashboard', 'Simulator', 'Team'].map(page => (
+                <li key={page}>
+                  <a href={`/${page.toLowerCase()}`} className="text-gray-700 hover:text-blue-600 font-medium relative group transition-colors duration-200">
+                    {page}
                     <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
                   </a>
                 </li>
@@ -410,204 +166,558 @@ export default function Simulator() {
       </header>
 
       {/* Main Content */}
-      <main className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-white">
-        <section className="container mx-auto px-6 py-12">
-          {/* Hero Section */}
-          <div className="text-center mb-12">
-            <h1 className="text-4xl md:text-5xl font-bold text-gray-800 mb-6 leading-tight">
-              Interactive Ocean
-              <span className="bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
-                {" "}
-                Simulator
-              </span>
-            </h1>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              Visualize oil spills, maritime trade routes, and SAR satellite
-              coverage in real time with our advanced 3D globe interface.
-            </p>
-          </div>
+      <main className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-white pt-8 pb-16">
+        <div className="container mx-auto px-6 max-w-7xl">
 
-          {/* Mode Controls */}
-          <div className="flex flex-wrap justify-center gap-4 mb-8">
+          {/* Hero Section */}
+          <section className="text-center mb-12">
+            <h1 className="text-4xl md:text-6xl font-bold text-gray-800 mb-6 leading-tight">
+              Interactive Ocean <span className="bg-gradient-to-r from-blue-600 via-cyan-600 to-teal-600 bg-clip-text text-transparent">Simulator</span>
+            </h1>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">Explore marine dynamics through real-time data visualization and environmental monitoring systems.</p>
+          </section>
+
+          {/* Navigation Tabs */}
+          <div className="flex flex-wrap gap-3 mb-8 justify-center">
             {[
-              { id: "oil-spills", label: "Oil Spill Detection", icon: "🛢️" },
-              { id: "trade-routes", label: "Maritime Routes", icon: "🚢" },
-              { id: "sar-data", label: "SAR Coverage", icon: "🛰️" },
-            ].map((btn) => (
+              { id: 'simulator', label: 'Live Simulator', desc: 'Real-time Ocean Monitoring' },
+              { id: 'timelapse', label: 'Time-Lapse Analysis', desc: 'Historical Environmental Trends' },
+              { id: 'thresholds', label: 'Data Thresholds', desc: 'Critical Level Indicators' },
+            ].map(tab => (
               <button
-                key={btn.id}
-                onClick={() => setMode(btn.id)}
-                className={`px-6 py-3 rounded-xl font-medium transition-all duration-300 transform hover:scale-105 flex items-center gap-3 ${
-                  mode === btn.id
-                    ? "bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-lg shadow-blue-500/25"
-                    : "bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 hover:border-blue-300 hover:shadow-md"
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`group px-6 py-4 rounded-2xl font-medium transition-all duration-300 transform hover:scale-105 ${
+                  activeTab === tab.id
+                    ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-lg shadow-blue-500/25'
+                    : 'bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 shadow-sm hover:shadow-md'
                 }`}
               >
-                <span className="text-lg">{btn.icon}</span>
-                {btn.label}
+                <div className="text-left">
+                  <div className="font-semibold text-lg">{tab.label}</div>
+                  <div className="text-sm opacity-80">{tab.desc}</div>
+                </div>
               </button>
             ))}
           </div>
 
-          {/* Globe Container */}
-          <div className="bg-white rounded-2xl shadow-xl overflow-hidden border">
-            <div
-              ref={globeEl}
-              style={{
-                width: "100%",
-                height: "600px",
-                background: "#0d141a",
-              }}
-            />
+          {/* Tab Content */}
+          <div className="relative">
+
+            {/* Simulator Tab */}
+            {activeTab === 'simulator' && (
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {simulatorSections.map(section => (
+                  <div
+                    key={section.id}
+                    className="group bg-white rounded-3xl shadow-sm hover:shadow-xl transition-all duration-500 overflow-hidden border border-gray-100 cursor-pointer transform hover:scale-[1.02]"
+                    onClick={() => enterFullscreen(`simulator-${section.id}`)}
+                  >
+                    {/* Image Section - Much Larger */}
+                    <div className="relative overflow-hidden">
+                      <img 
+                        src={section.currentImage} 
+                        alt={section.title}
+                        className="w-full h-80 object-cover transition-transform duration-700 group-hover:scale-110"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+                      <div className="absolute top-6 left-6 flex items-center gap-3">
+                        <div className="w-4 h-4 bg-green-500 rounded-full animate-pulse shadow-lg"></div>
+                        <span className="text-white font-semibold bg-black/30 px-3 py-1 rounded-full backdrop-blur-sm">Live</span>
+                      </div>
+                      <div className="absolute top-6 right-6">
+                        <span className="text-5xl drop-shadow-lg">{section.icon}</span>
+                      </div>
+                      
+                      {/* Bottom overlay with key info */}
+                      <div className="absolute bottom-6 left-6 right-6">
+                        <div className="bg-black/40 backdrop-blur-md rounded-2xl p-4 text-white">
+                          <div className="flex justify-between items-center">
+                            <div>
+                              <div className="font-bold text-lg">{section.title}</div>
+                              <div className="text-sm opacity-90">{section.status}</div>
+                            </div>
+                            <div className="text-right">
+                              <div className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold">
+                                {section.alerts} Alerts
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Content Section */}
+                    <div className="p-6 space-y-4">
+                      <div>
+                        <h3 className="text-xl font-bold text-gray-800 mb-2">{section.title}</h3>
+                        <p className="text-gray-600 text-sm leading-relaxed">{section.description}</p>
+                      </div>
+
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-500 text-sm">Status</span>
+                          <span className="font-semibold text-gray-800">{section.status}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-500 text-sm">Active Alerts</span>
+                          <span className="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-semibold">{section.alerts}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-500 text-sm">Coverage</span>
+                          <span className="text-blue-600 font-semibold">{section.coverage}</span>
+                        </div>
+                      </div>
+
+                      <button className="w-full bg-gray-50 hover:bg-gray-100 text-gray-700 py-3 rounded-xl transition-colors duration-200 font-medium">
+                        View Details →
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Time-lapse Tab */}
+            {activeTab === 'timelapse' && (
+              <div className="space-y-12">
+                {Object.entries(timelapseFrames).map(([sectionKey, frames]) => (
+                  <div 
+                    key={sectionKey}
+                    className="bg-white rounded-3xl p-8 shadow-sm hover:shadow-xl transition-all duration-500 border border-gray-100 cursor-pointer"
+                    onClick={() => enterFullscreen(`timelapse-${sectionKey}`)}
+                  >
+                    <div className="flex items-center gap-4 mb-8">
+                      <span className="text-3xl">{simulatorSections.find(s => s.id === sectionKey)?.icon}</span>
+                      <h3 className="text-2xl font-bold text-gray-800">
+                        {simulatorSections.find(s => s.id === sectionKey)?.title} Timeline
+                      </h3>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+                      {frames.map((frame, i) => (
+                        <div
+                          key={i}
+                          className={`relative overflow-hidden rounded-2xl transition-all duration-500 ${
+                            i === currentFrame
+                              ? 'ring-4 ring-blue-500 shadow-lg scale-105'
+                              : 'hover:scale-102 shadow-sm'
+                          }`}
+                        >
+                          <img 
+                            src={frame.image} 
+                            alt={frame.label}
+                            className="w-full h-32 object-cover"
+                          />
+                          <div className={`absolute inset-0 bg-gradient-to-t ${getSeverityColor(frame.severity)} opacity-80`} />
+                          <div className="absolute inset-0 p-3 flex flex-col justify-end text-white">
+                            <div className="font-semibold text-sm">{frame.label}</div>
+                            <div className="text-xs opacity-90">{frame.status}</div>
+                          </div>
+                          {i === currentFrame && (
+                            <div className="absolute top-2 right-2 w-2 h-2 bg-white rounded-full animate-pulse" />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Timeline Controls */}
+                    <div className="mt-8 flex items-center justify-center gap-6">
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setIsPlaying(!isPlaying); }}
+                        className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium transition-all duration-200 shadow-lg hover:shadow-blue-500/25"
+                      >
+                        {isPlaying ? '⏸️ Pause' : '▶️ Play'}
+                      </button>
+                      <div className="text-gray-600 font-medium">
+                        Frame {currentFrame + 1} of {frames.length}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Data Thresholds Tab */}
+            {activeTab === 'thresholds' && (
+              <div 
+                className="space-y-8 cursor-pointer"
+                onClick={() => enterFullscreen('thresholds')}
+              >
+                {dataThresholds.map(category => (
+                  <div key={category.category} className="bg-white rounded-3xl p-8 shadow-sm hover:shadow-xl transition-all duration-500 border border-gray-100">
+                    <div className="flex items-center gap-4 mb-8">
+                      <span className="text-3xl">{category.icon}</span>
+                      <h3 className="text-2xl font-bold text-gray-800">{category.category}</h3>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                      {category.thresholds.map((threshold, i) => (
+                        <div
+                          key={i}
+                          className="group relative overflow-hidden rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 transform hover:scale-105"
+                        >
+                          <div className={`bg-gradient-to-br ${threshold.color} p-6 text-white h-full`}>
+                            <div className="mb-4">
+                              <h4 className="text-xl font-bold mb-2">{threshold.level}</h4>
+                              <p className="text-sm opacity-90 font-medium">{threshold.range}</p>
+                            </div>
+                            <div className="text-xs opacity-80 bg-white/20 rounded-lg p-2 backdrop-blur-sm">
+                              {threshold.status}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
-
-          {/* Info Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-            <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
-              <div className="text-2xl mb-3">🛢️</div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-2">
-                Oil Spill Detection
-              </h3>
-              <p className="text-gray-600 text-sm">
-                Real-time monitoring and visualization of oil spills detected
-                through satellite imagery and SAR data analysis.
-              </p>
-            </div>
-
-            <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
-              <div className="text-2xl mb-3">🚢</div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-2">
-                Maritime Trade Routes
-              </h3>
-              <p className="text-gray-600 text-sm">
-                Explore major shipping lanes and trade corridors connecting
-                ports worldwide with cargo and risk assessments.
-              </p>
-            </div>
-
-            <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
-              <div className="text-2xl mb-3">🛰️</div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-2">
-                SAR Satellite Coverage
-              </h3>
-              <p className="text-gray-600 text-sm">
-                View synthetic aperture radar coverage areas and acquisition
-                patterns for comprehensive ocean monitoring.
-              </p>
-            </div>
-          </div>
-        </section>
+        </div>
       </main>
 
       {/* Footer */}
-      <footer className="bg-gradient-to-br from-slate-800 via-slate-900 to-gray-900 text-white py-12 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-blue-600/20 via-transparent to-cyan-600/20"></div>
-        </div>
-
-        <div className="container mx-auto px-4 relative z-10">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
-            {/* Connect Section */}
+      <footer className="bg-gradient-to-br from-slate-800 via-slate-900 to-gray-900 text-white py-16">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
             <div className="space-y-6">
-              <h4 className="text-xl font-bold text-white">Connect</h4>
-              <p className="text-gray-400 text-sm leading-relaxed">
-                Stay updated with ocean health insights daily
-              </p>
-
-              {/* Social Icons */}
+              <h4 className="text-2xl font-bold">Connect</h4>
+              <p className="text-gray-400 leading-relaxed">Stay updated with ocean health insights and environmental monitoring data.</p>
               <div className="flex space-x-4">
-                {/* Facebook */}
-                <a
-                  href="https://www.facebook.com/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-10 h-10 bg-slate-700 hover:bg-blue-600 rounded-full flex items-center justify-center transition-all duration-300 transform hover:scale-110 hover:rotate-12"
-                  title="Facebook"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="18"
-                    height="18"
-                    fill="currentColor"
-                  >
-                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.983h-1.5c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-                  </svg>
+                <a href="https://www.facebook.com/" target="_blank" rel="noopener noreferrer" className="w-12 h-12 bg-slate-700 hover:bg-blue-600 rounded-full flex items-center justify-center transition-colors duration-200">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.983h-1.5c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
                 </a>
-                {/* Instagram */}
-                <a
-                  href="https://www.instagram.com/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-10 h-10 bg-slate-700 hover:bg-pink-600 rounded-full flex items-center justify-center transition-all duration-300 transform hover:scale-110 hover:rotate-12"
-                  title="Instagram"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="18"
-                    height="18"
-                    fill="currentColor"
-                  >
-                    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
-                  </svg>
+                <a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer" className="w-12 h-12 bg-slate-700 hover:bg-pink-600 rounded-full flex items-center justify-center transition-colors duration-200">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
                 </a>
-                {/* Twitter/X */}
-                <a
-                  href="https://twitter.com/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-10 h-10 bg-slate-700 hover:bg-gray-600 rounded-full flex items-center justify-center transition-all duration-300 transform hover:scale-110 hover:rotate-12"
-                  title="X (Twitter)"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="16"
-                    height="16"
-                    fill="currentColor"
-                  >
-                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-                  </svg>
+                <a href="https://twitter.com/" target="_blank" rel="noopener noreferrer" className="w-12 h-12 bg-slate-700 hover:bg-gray-600 rounded-full flex items-center justify-center transition-colors duration-200">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
                 </a>
               </div>
             </div>
 
-            {/* DHEU Ocean Watch Info */}
-            <div className="space-y-4 text-center">
-              <h4 className="text-xl font-bold">DHEU Ocean Watch</h4>
-              <p className="text-gray-400 text-sm">
-                Protecting our oceans through data.
-              </p>
+            <div className="text-center space-y-4">
+              <h4 className="text-2xl font-bold">DHEU Ocean Watch</h4>
+              <p className="text-gray-400">Protecting our oceans through advanced monitoring and data analysis.</p>
             </div>
 
-            {/* Newsletter Section */}
             <div className="space-y-6">
-              <h4 className="text-xl font-bold text-white">INFO</h4>
-              <div className="space-y-4">
-                <label className="block">
-                  <span className="text-sm font-medium text-gray-300 mb-2 block">
-                    Your Email Address
-                  </span>
-                  <input
-                    type="email"
-                    placeholder="Enter email here"
-                    className="w-full px-4 py-2.5 rounded-lg bg-slate-700/50 border border-slate-600 text-white placeholder-gray-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 outline-none transition-all duration-300 hover:bg-slate-700/70"
-                  />
-                </label>
-                <button className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-medium py-2.5 px-4 rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-lg">
-                  Subscribe Now
-                </button>
-              </div>
+              <h4 className="text-2xl font-bold">Subscribe</h4>
+              <input
+                type="email"
+                placeholder="Enter your email"
+                className="w-full px-4 py-3 rounded-xl bg-slate-700/50 border border-slate-600 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-medium transition-colors duration-200">
+                Subscribe to Updates
+              </button>
             </div>
           </div>
-
-          <hr className="border-slate-700/50 my-8" />
-
-          <div className="text-center">
-            <p className="text-gray-500 text-sm">
-              &copy; 2025. All rights reserved.
-            </p>
-          </div>
+          <hr className="border-slate-700/50 my-12" />
+          <p className="text-center text-gray-500">&copy; 2025 DHEU Ocean Watch. All rights reserved.</p>
         </div>
       </footer>
+
+      {/* Fullscreen Modal */}
+      {isFullscreen && (
+        <div
+          className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center p-0 backdrop-blur-sm"
+          onClick={exitFullscreen}
+        >
+          <div
+            className="bg-white rounded-3xl shadow-2xl w-screen h-screen overflow-y-auto relative"
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Close Button */}
+            <button
+              onClick={exitFullscreen}
+              className="fixed top-6 right-6 z-10 w-12 h-12 bg-black/20 hover:bg-black/40 backdrop-blur-sm text-white rounded-full flex items-center justify-center text-2xl transition-all duration-200 hover:scale-110"
+            >
+              ×
+            </button>
+
+            <div className="p-8 md:p-12">
+              {/* Fullscreen content based on type */}
+              {fullscreenContent?.startsWith('simulator-') && (
+                <div className="space-y-8">
+                  {(() => {
+                    const sectionId = fullscreenContent.replace('simulator-', '');
+                    const section = simulatorSections.find(s => s.id === sectionId);
+                    return (
+                      <div className="max-w-6xl mx-auto">
+                        <div className="text-center mb-12">
+                          <span className="text-6xl mb-4 block">{section?.icon}</span>
+                          <h2 className="text-4xl font-bold text-gray-800 mb-4">{section?.title}</h2>
+                          <p className="text-xl text-gray-600">{section?.description}</p>
+                        </div>
+
+                        {/* Main Content Layout - Image Priority */}
+                        <div className="space-y-8">
+                          {/* Massive Image Display */}
+                          <div className="relative overflow-hidden rounded-3xl shadow-2xl">
+                            <img 
+                              src={section?.currentImage} 
+                              alt={section?.title}
+                              className="w-full h-[70vh] object-cover"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/20" />
+                            
+                            {/* Overlay Info */}
+                            <div className="absolute top-8 left-8 flex items-center gap-4">
+                              <div className="w-5 h-5 bg-green-500 rounded-full animate-pulse shadow-lg"></div>
+                              <span className="text-white font-semibold text-lg bg-black/30 px-4 py-2 rounded-full backdrop-blur-sm">
+                                Live Monitoring
+                              </span>
+                            </div>
+
+                            {/* Bottom Overlay with Key Stats */}
+                            <div className="absolute bottom-8 left-8 right-8">
+                              <div className="bg-black/40 backdrop-blur-md rounded-2xl p-6 text-white">
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                                  <div>
+                                    <div className="text-sm opacity-80">Status</div>
+                                    <div className="font-bold text-lg">{section?.status}</div>
+                                  </div>
+                                  <div>
+                                    <div className="text-sm opacity-80">Active Alerts</div>
+                                    <div className="font-bold text-lg text-red-400">{section?.alerts}</div>
+                                  </div>
+                                  <div>
+                                    <div className="text-sm opacity-80">Coverage</div>
+                                    <div className="font-bold text-lg text-blue-400">{section?.coverage}</div>
+                                  </div>
+                                  <div>
+                                    <div className="text-sm opacity-80">Last Update</div>
+                                    <div className="font-bold text-lg">2 min ago</div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Information Panels Below */}
+                          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                            <div className="bg-blue-50 rounded-3xl p-8">
+                              <h4 className="font-bold text-blue-800 text-xl mb-6">Detection Method</h4>
+                              <p className="text-blue-700 leading-relaxed text-lg">
+                                Advanced satellite imagery combined with AI-powered analysis enables real-time detection 
+                                and tracking of environmental changes across global ocean systems.
+                              </p>
+                            </div>
+
+                            <div className="bg-yellow-50 rounded-3xl p-8">
+                              <h4 className="font-bold text-yellow-800 text-xl mb-6">Current Conditions</h4>
+                              <div className="grid grid-cols-2 gap-6">
+                                <div>
+                                  <span className="text-yellow-600 block text-sm">Wind Speed</span>
+                                  <span className="font-bold text-yellow-800 text-xl">15.3 km/h</span>
+                                </div>
+                                <div>
+                                  <span className="text-yellow-600 block text-sm">Wave Height</span>
+                                  <span className="font-bold text-yellow-800 text-xl">2.1 m</span>
+                                </div>
+                                <div>
+                                  <span className="text-yellow-600 block text-sm">Visibility</span>
+                                  <span className="font-bold text-yellow-800 text-xl">12.5 km</span>
+                                </div>
+                                <div>
+                                  <span className="text-yellow-600 block text-sm">Water Temp</span>
+                                  <span className="font-bold text-yellow-800 text-xl">22.4°C</span>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="bg-green-50 rounded-3xl p-8">
+                              <h4 className="font-bold text-green-800 text-xl mb-6">Response Actions</h4>
+                              <div className="space-y-4">
+                                <div className="flex items-center gap-4">
+                                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                                  <span className="text-green-700 text-lg">Monitoring stations activated</span>
+                                </div>
+                                <div className="flex items-center gap-4">
+                                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                                  <span className="text-green-700 text-lg">Local authorities notified</span>
+                                </div>
+                                <div className="flex items-center gap-4">
+                                  <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                                  <span className="text-green-700 text-lg">Cleanup crews on standby</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+              )}
+
+              {fullscreenContent?.startsWith('timelapse-') && (
+                <div className="space-y-8">
+                  {(() => {
+                    const sectionKey = fullscreenContent.replace('timelapse-', '');
+                    const section = simulatorSections.find(s => s.id === sectionKey);
+                    const frames = timelapseFrames[sectionKey];
+                    return (
+                      <div className="max-w-6xl mx-auto">
+                        <div className="text-center mb-12">
+                          <span className="text-6xl mb-4 block">{section?.icon}</span>
+                          <h2 className="text-4xl font-bold text-gray-800 mb-4">{section?.title} Time-Lapse</h2>
+                          <p className="text-xl text-gray-600">Historical progression over the past year</p>
+                        </div>
+
+                        {/* Large Timeline Display */}
+                        <div className="mb-12">
+                          {/* Large Display */}
+                          <div className="relative overflow-hidden rounded-3xl shadow-2xl mb-8">
+                            <img 
+                              src={frames[currentFrame]?.image} 
+                              alt={frames[currentFrame]?.label}
+                              className="w-full h-[60vh] object-cover"
+                            />
+                            <div className={`absolute inset-0 bg-gradient-to-t ${getSeverityColor(frames[currentFrame]?.severity)} opacity-70`} />
+                            
+                            {/* Overlay Info */}
+                            <div className="absolute top-8 left-8">
+                              <div className="bg-black/40 backdrop-blur-md rounded-2xl p-6 text-white">
+                                <div className="text-3xl font-bold mb-2">{frames[currentFrame]?.label}</div>
+                                <div className="text-xl opacity-90">{frames[currentFrame]?.status}</div>
+                                <div className={`inline-block mt-4 px-4 py-2 rounded-full text-sm font-semibold bg-gradient-to-r ${getSeverityColor(frames[currentFrame]?.severity)}`}>
+                                  {frames[currentFrame]?.severity.toUpperCase()} LEVEL
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Progress Indicator */}
+                            <div className="absolute bottom-8 right-8">
+                              <div className="bg-black/40 backdrop-blur-md rounded-2xl p-4 text-white">
+                                <div className="text-sm opacity-80">Frame Progress</div>
+                                <div className="text-lg font-bold">{currentFrame + 1} / {frames.length}</div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Timeline Navigation */}
+                          <div className="grid grid-cols-5 gap-4">
+                            {frames.map((frame, i) => (
+                              <div
+                                key={i}
+                                className={`relative overflow-hidden rounded-2xl transition-all duration-500 cursor-pointer ${
+                                  i === currentFrame
+                                    ? 'ring-4 ring-blue-500 shadow-2xl scale-105'
+                                    : 'hover:scale-102 shadow-lg opacity-70 hover:opacity-100'
+                                }`}
+                                onClick={() => setCurrentFrame(i)}
+                              >
+                                <img 
+                                  src={frame.image} 
+                                  alt={frame.label}
+                                  className="w-full h-24 object-cover"
+                                />
+                                <div className={`absolute inset-0 bg-gradient-to-t ${getSeverityColor(frame.severity)} opacity-80`} />
+                                <div className="absolute inset-0 p-3 flex flex-col justify-end text-white">
+                                  <div className="font-semibold text-sm">{frame.label}</div>
+                                </div>
+                                {i === currentFrame && (
+                                  <div className="absolute top-2 right-2 w-2 h-2 bg-white rounded-full animate-pulse" />
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Current Frame Details */}
+                        <div className="bg-gray-50 rounded-3xl p-8">
+                          <h3 className="text-2xl font-bold text-gray-800 mb-6">
+                            Detailed Analysis - {frames[currentFrame]?.label}
+                          </h3>
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div className="bg-white rounded-2xl p-6 shadow-sm">
+                              <h4 className="font-semibold text-gray-700 mb-2">Status Change</h4>
+                              <p className="text-2xl font-bold text-blue-600">{frames[currentFrame]?.status}</p>
+                            </div>
+                            <div className="bg-white rounded-2xl p-6 shadow-sm">
+                              <h4 className="font-semibold text-gray-700 mb-2">Severity Level</h4>
+                              <div className={`inline-block px-4 py-2 rounded-full text-white font-semibold bg-gradient-to-r ${getSeverityColor(frames[currentFrame]?.severity)}`}>
+                                {frames[currentFrame]?.severity.toUpperCase()}
+                              </div>
+                            </div>
+                            <div className="bg-white rounded-2xl p-6 shadow-sm">
+                              <h4 className="font-semibold text-gray-700 mb-2">Impact Assessment</h4>
+                              <p className="text-gray-600">Affecting marine ecosystems and coastal regions</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Controls */}
+                        <div className="flex items-center justify-center gap-6 mt-8">
+                          <button
+                            onClick={() => setIsPlaying(!isPlaying)}
+                            className="flex items-center gap-3 px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-medium transition-all duration-200 shadow-lg hover:shadow-blue-500/25"
+                          >
+                            {isPlaying ? '⏸️ Pause Timeline' : '▶️ Play Timeline'}
+                          </button>
+                          <div className="text-gray-600 font-medium text-lg">
+                            Frame {currentFrame + 1} of {frames.length}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+              )}
+
+              {fullscreenContent === 'thresholds' && (
+                <div className="max-w-6xl mx-auto space-y-12">
+                  <div className="text-center mb-12">
+                    <h2 className="text-4xl font-bold text-gray-800 mb-4">Environmental Threshold Indicators</h2>
+                    <p className="text-xl text-gray-600">Critical level definitions and response protocols</p>
+                  </div>
+
+                  {dataThresholds.map(category => (
+                    <div key={category.category} className="bg-gray-50 rounded-3xl p-8">
+                      <div className="flex items-center gap-6 mb-8">
+                        <span className="text-5xl">{category.icon}</span>
+                        <h3 className="text-3xl font-bold text-gray-800">{category.category}</h3>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        {category.thresholds.map((threshold, i) => (
+                          <div
+                            key={i}
+                            className="group relative overflow-hidden rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
+                          >
+                            <div className={`bg-gradient-to-br ${threshold.color} p-8 text-white h-full min-h-[200px] flex flex-col justify-between`}>
+                              <div>
+                                <h4 className="text-2xl font-bold mb-4">{threshold.level}</h4>
+                                <p className="text-lg opacity-90 font-medium mb-4">{threshold.range}</p>
+                              </div>
+                              <div className="text-sm opacity-90 bg-white/20 rounded-xl p-4 backdrop-blur-sm">
+                                <strong>Response:</strong><br />
+                                {threshold.status}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Additional Info */}
+                      <div className="mt-8 bg-white rounded-2xl p-6">
+                        <h4 className="font-bold text-gray-800 mb-4">Monitoring Protocol</h4>
+                        <p className="text-gray-600 leading-relaxed">
+                          Continuous monitoring using satellite data, IoT sensors, and AI analysis. 
+                          Automated alerts trigger when thresholds are exceeded, enabling rapid response coordination.
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
-}
+};
