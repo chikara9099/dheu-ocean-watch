@@ -1,8 +1,7 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import OceanTimeline from '../components/OceanTimeline';
 
 export default function Simulator() {
-  const fullscreenRef = useRef(null);
-
   const [activeTab, setActiveTab] = useState('simulator');
 
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -280,61 +279,8 @@ export default function Simulator() {
 
             {/* Time-lapse Tab */}
             {activeTab === 'timelapse' && (
-              <div className="space-y-12">
-                {Object.entries(timelapseFrames).map(([sectionKey, frames]) => (
-                  <div 
-                    key={sectionKey}
-                    className="bg-white rounded-3xl p-8 shadow-sm hover:shadow-xl transition-all duration-500 border border-gray-100 cursor-pointer"
-                    onClick={() => enterFullscreen(`timelapse-${sectionKey}`)}
-                  >
-                    <div className="flex items-center gap-4 mb-8">
-                      <span className="text-3xl">{simulatorSections.find(s => s.id === sectionKey)?.icon}</span>
-                      <h3 className="text-2xl font-bold text-gray-800">
-                        {simulatorSections.find(s => s.id === sectionKey)?.title} Timeline
-                      </h3>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-                      {frames.map((frame, i) => (
-                        <div
-                          key={i}
-                          className={`relative overflow-hidden rounded-2xl transition-all duration-500 ${
-                            i === currentFrame
-                              ? 'ring-4 ring-blue-500 shadow-lg scale-105'
-                              : 'hover:scale-102 shadow-sm'
-                          }`}
-                        >
-                          <img 
-                            src={frame.image} 
-                            alt={frame.label}
-                            className="w-full h-32 object-cover"
-                          />
-                          <div className={`absolute inset-0 bg-gradient-to-t ${getSeverityColor(frame.severity)} opacity-80`} />
-                          <div className="absolute inset-0 p-3 flex flex-col justify-end text-white">
-                            <div className="font-semibold text-sm">{frame.label}</div>
-                            <div className="text-xs opacity-90">{frame.status}</div>
-                          </div>
-                          {i === currentFrame && (
-                            <div className="absolute top-2 right-2 w-2 h-2 bg-white rounded-full animate-pulse" />
-                          )}
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Timeline Controls */}
-                    <div className="mt-8 flex items-center justify-center gap-6">
-                      <button
-                        onClick={(e) => { e.stopPropagation(); setIsPlaying(!isPlaying); }}
-                        className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium transition-all duration-200 shadow-lg hover:shadow-blue-500/25"
-                      >
-                        {isPlaying ? '⏸️ Pause' : '▶️ Play'}
-                      </button>
-                      <div className="text-gray-600 font-medium">
-                        Frame {currentFrame + 1} of {frames.length}
-                      </div>
-                    </div>
-                  </div>
-                ))}
+              <div className="space-y-8">
+                <OceanTimeline />
               </div>
             )}
 
