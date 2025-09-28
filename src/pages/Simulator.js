@@ -142,19 +142,39 @@ export default function Simulator() {
 
   return (
     <>
-      {/* Header */}
-      <header className="bg-white/95 backdrop-blur-md shadow-sm sticky top-0 z-40 transition-all duration-300 hover:shadow-lg border-b border-blue-100/50" style={{ height: '120px' }}>
+      {/* Header / Navbar */}
+      <header
+        id="header"
+        className="bg-white shadow-sm sticky top-0 z-50 transition-all duration-300 hover:shadow-lg"
+        style={{ height: '145px' }}
+      >
         <div className="container mx-auto px-4 flex items-center justify-between h-full">
+          {/* Logo */}
           <a href="/" className="block transform hover:scale-105 transition-transform duration-200">
-            <img src="/assets/DHEU.png" alt="DHEU logo" className="h-16 md:h-20 transition-all duration-200" />
+            <img
+              src="/assets/DHEU.png"
+              alt="DHEU logo"
+              className="h-20 md:h-24 transition-all duration-200"
+            />
           </a>
 
+          {/* Navigation */}
           <nav>
             <ul className="flex space-x-8">
-              {['Home', 'Dashboard', 'Simulator', 'Team'].map(page => (
-                <li key={page}>
-                  <a href={`/${page.toLowerCase()}`} className="text-gray-700 hover:text-blue-600 font-medium relative group transition-colors duration-200">
-                    {page}
+              {[
+                { name: 'Home', href: '/' },
+                { name: 'Dashboard', href: '/dashboard' },
+                { name: 'Simulator', href: '/simulator' },
+                { name: 'Updates', href: '/update' },
+                { name: 'DheuKids', href: '/dheukids' },
+                { name: 'Team', href: '/team' },
+              ].map((item) => (
+                <li key={item.name}>
+                  <a
+                    href={item.href}
+                    className="text-gray-700 hover:text-blue-600 font-medium transition-all duration-200 relative group"
+                  >
+                    {item.name}
                     <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
                   </a>
                 </li>
@@ -323,45 +343,97 @@ export default function Simulator() {
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="bg-gradient-to-br from-slate-800 via-slate-900 to-gray-900 text-white py-16">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+      
+      {/* Enhanced Footer */}
+      <footer className="bg-gradient-to-br from-slate-800 via-slate-900 to-gray-900 text-white py-12 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-blue-600/20 via-transparent to-cyan-600/20"></div>
+        </div>
+
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
+
+            {/* Connect Section */}
             <div className="space-y-6">
-              <h4 className="text-2xl font-bold">Connect</h4>
-              <p className="text-gray-400 leading-relaxed">Stay updated with ocean health insights and environmental monitoring data.</p>
+              <h4 className="text-xl font-bold text-white">Connect</h4>
+              <p className="text-gray-400 text-sm leading-relaxed">
+                Stay updated with ocean health insights daily
+              </p>
+
+              {/* Social Icons */}
               <div className="flex space-x-4">
-                <a href="https://www.facebook.com/" target="_blank" rel="noopener noreferrer" className="w-12 h-12 bg-slate-700 hover:bg-blue-600 rounded-full flex items-center justify-center transition-colors duration-200">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.983h-1.5c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                <a
+                  href="https://www.facebook.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-10 h-10 bg-slate-700 hover:bg-blue-600 rounded-full flex items-center justify-center transition-all duration-300 transform hover:scale-110 hover:rotate-12"
+                  title="Facebook"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor">
+                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.983h-1.5c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                  </svg>
                 </a>
-                <a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer" className="w-12 h-12 bg-slate-700 hover:bg-pink-600 rounded-full flex items-center justify-center transition-colors duration-200">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+
+                <a
+                  href="https://www.instagram.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-10 h-10 bg-slate-700 hover:bg-pink-600 rounded-full flex items-center justify-center transition-all duration-300 transform hover:scale-110 hover:rotate-12"
+                  title="Instagram"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor">
+                    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
+                  </svg>
                 </a>
-                <a href="https://twitter.com/" target="_blank" rel="noopener noreferrer" className="w-12 h-12 bg-slate-700 hover:bg-gray-600 rounded-full flex items-center justify-center transition-colors duration-200">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+
+                <a
+                  href="https://twitter.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-10 h-10 bg-slate-700 hover:bg-gray-600 rounded-full flex items-center justify-center transition-all duration-300 transform hover:scale-110 hover:rotate-12"
+                  title="X (Twitter)"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor">
+                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.80l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                  </svg>
                 </a>
               </div>
             </div>
 
-            <div className="text-center space-y-4">
-              <h4 className="text-2xl font-bold">DHEU Ocean Watch</h4>
-              <p className="text-gray-400">Protecting our oceans through advanced monitoring and data analysis.</p>
+            {/* DHEU Ocean Watch Info */}
+            <div className="space-y-4 text-center">
+              <h4 className="text-xl font-bold">DHEU Ocean Watch</h4>
+              <p className="text-gray-400 text-sm">Protecting our oceans through data.</p>
             </div>
 
+            {/* Newsletter Section */}
             <div className="space-y-6">
-              <h4 className="text-2xl font-bold">Subscribe</h4>
-              <input
-                type="email"
-                placeholder="Enter your email"
-                className="w-full px-4 py-3 rounded-xl bg-slate-700/50 border border-slate-600 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-              <button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-medium transition-colors duration-200">
-                Subscribe to Updates
-              </button>
+              <h4 className="text-xl font-bold text-white">Stay Updated</h4>
+              <div className="space-y-4">
+                <label className="block">
+                  <span className="text-sm font-medium text-gray-300 mb-2 block">Your Email Address</span>
+                  <input
+                    type="email"
+                    placeholder="Enter email here"
+                    className="w-full px-4 py-2.5 rounded-lg bg-slate-700/50 border border-slate-600 text-white placeholder-gray-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 outline-none transition-all duration-300 hover:bg-slate-700/70"
+                  />
+                </label>
+                <button
+                  className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-medium py-2.5 px-4 rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
+                >
+                  Subscribe Now
+                </button>
+              </div>
             </div>
           </div>
-          <hr className="border-slate-700/50 my-12" />
-          <p className="text-center text-gray-500">&copy; 2025 DHEU Ocean Watch. All rights reserved.</p>
+
+          <hr className="border-slate-700/50 my-8" />
+
+          <div className="text-center">
+            <p className="text-gray-500 text-sm">
+              &copy; 2025 DHEU Ocean Watch. All rights reserved.
+            </p>
+          </div>
         </div>
       </footer>
 

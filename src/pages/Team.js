@@ -57,7 +57,7 @@ const Team = () => {
       image: "/assets/team-5.avif",
     },
     {
-      name: "TBD",
+      name: "Sourav Sarker",
       role: "Some role",
       bio: "Role niye bhekbhek.",
       image: "/assets/team-6.avif",
@@ -89,6 +89,8 @@ const Team = () => {
                 { name: 'Home', href: '/' },
                 { name: 'Dashboard', href: '/dashboard' },
                 { name: 'Simulator', href: '/simulator' },
+                { name: 'Updates', href: '/update' },
+                { name: 'DheuKids', href: '/dheukids' },
                 { name: 'Team', href: '/team' },
               ].map((item) => (
                 <li key={item.name}>

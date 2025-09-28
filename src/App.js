@@ -4,6 +4,8 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Dashboard from './pages/Dashboard';
 import Simulator from './pages/Simulator';
 import Team from './pages/Team';
+import Update from './pages/Update';
+import DheuKids from './pages/DheuKids';
 
 
 function Home() {
@@ -32,6 +34,8 @@ function Home() {
                 { name: 'Home', href: '/' },
                 { name: 'Dashboard', href: '/dashboard' },
                 { name: 'Simulator', href: '/simulator' },
+                { name: 'Updates', href: '/update' },
+                { name: 'DheuKids', href: '/dheukids' },
                 { name: 'Team', href: '/team' },
               ].map((item) => (
                 <li key={item.name}>
@@ -455,10 +459,12 @@ function App() {
   return (
     <Router>
       <Routes>
-  <Route path="/" element={<Home />} />
-  <Route path="/dashboard" element={<Dashboard />} />
-  <Route path="/simulator" element={<Simulator />} />
-  <Route path="/team" element={<Team />} />
+        <Route path="/" element={<Home />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/simulator" element={<Simulator />} />
+        <Route path="/update" element={<Update />} />
+        <Route path="/dheukids" element={<DheuKids />} />
+        <Route path="/team" element={<Team />} />
       </Routes>
     </Router>
   );

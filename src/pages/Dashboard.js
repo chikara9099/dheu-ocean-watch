@@ -70,6 +70,8 @@ const Dashboard = () => {
                 { name: 'Home', href: '/' },
                 { name: 'Dashboard', href: '/dashboard' },
                 { name: 'Simulator', href: '/simulator' },
+                { name: 'Updates', href: '/update' },
+                { name: 'DheuKids', href: '/dheukids' },
                 { name: 'Team', href: '/team' },
               ].map((item) => (
                 <li key={item.name}>
