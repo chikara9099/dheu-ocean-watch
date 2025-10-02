@@ -71,6 +71,37 @@ const OceanTimeline = () => {
     return sssFrames.sort((a, b) => a.date - b.date);
   };
 
+  // Generate timeline frames from CHL PNG files (Chlorophyll-a Concentration)
+  const generateCHLFrames = () => {
+    const chlFrames = [];
+    
+    const years = ['03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '24', '25'];
+    const months = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
+    
+    years.forEach(year => {
+      months.forEach(month => {
+        const fullYear = 2000 + parseInt(year);
+        const day = '01';
+        const filename = `${month}_${day}_${year}.png`;
+
+        chlFrames.push({
+          id: `chl-${fullYear}-${month}`,
+          date: new Date(fullYear, parseInt(month) - 1, 1),
+          year: fullYear,
+          month,
+          displayName: `${fullYear}-${month}`,
+          type: 'chl',
+          filename: filename,
+          imagePath: `/assets/chl/${filename}`,
+          label: `CHL ${fullYear}-${month}`,
+          description: `Chlorophyll-a Concentration - ${new Date(fullYear, parseInt(month) - 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`
+        });
+      });
+    });
+    
+    return chlFrames.sort((a, b) => a.date - b.date);
+  };
+
   // Load frames based on current data type
   useEffect(() => {
     setLoading(true);
@@ -78,8 +109,10 @@ const OceanTimeline = () => {
     
     if (currentDataType === 'sst') {
       newFrames = generateSSTFrames();
-    } else {
+    } else if (currentDataType === 'sss') {
       newFrames = generateSSSFrames();
+    } else if (currentDataType === 'chl') {
+      newFrames = generateCHLFrames();
     }
     
     setFrames(newFrames);
@@ -157,6 +190,16 @@ const OceanTimeline = () => {
                 }`}
               >
                 Salinity
+              </button>
+              <button
+                onClick={() => setCurrentDataType('chl')}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
+                  currentDataType === 'chl'
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                Sea Color
               </button>
             </div>
           </div>
