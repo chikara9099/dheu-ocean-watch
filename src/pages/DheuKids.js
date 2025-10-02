@@ -554,42 +554,6 @@ const DheuKids = () => {
         </div>
       </section>
 
-      {/* News Section */}
-      <section className="py-16 px-6 bg-gray-50">
-        <div className="container mx-auto max-w-6xl">
-          <div className="text-center space-y-4 mb-12">
-            <h2 className="text-3xl font-bold text-gray-800">Ocean Health Updates</h2>
-            <p className="text-gray-600">Latest developments in marine conservation and research</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {newsItems.map((news, index) => (
-              <a
-                key={index}
-                href={news.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`block bg-white rounded-xl p-5 shadow-sm hover:shadow-md transition-all duration-300 border ${index === currentNews ? 'border-blue-300 shadow-md' : 'border-gray-200'
-                  }`}
-              >
-                <div className="flex justify-between items-start mb-3">
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${news.impact === 'Positive' ? 'bg-green-100 text-green-800' :
-                    news.impact === 'High' ? 'bg-orange-100 text-orange-800' :
-                      'bg-gray-100 text-gray-800'
-                    }`}>
-                    {news.impact}
-                  </span>
-                  <span className="text-xs text-gray-500">{news.date}</span>
-                </div>
-                <h4 className="font-semibold text-sm text-gray-800 mb-2">{news.title}</h4>
-                <p className="text-xs text-gray-600 mb-3">{news.summary}</p>
-                <p className="text-xs text-blue-600 font-medium">{news.source}</p>
-              </a>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Enhanced Footer */}
       <footer className="bg-gradient-to-br from-slate-800 via-slate-900 to-gray-900 text-white py-12 relative overflow-hidden">
         <div className="absolute inset-0 opacity-10">

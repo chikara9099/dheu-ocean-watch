@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 export default function Dashboard() {
   const [currentIndex, setCurrentIndex] = useState(78.4); // SARgonauts index (0-100, higher = better)
   const [selectedLetter, setSelectedLetter] = useState(null);
+  const [currentNews, setCurrentNews] = useState(0);
 
   // Specific monitoring region
   const monitoringRegion = {
@@ -53,6 +54,43 @@ export default function Dashboard() {
       icon: "👥"
     }
   ];
+
+  const newsItems = [
+    {
+      title: "Great Pacific Garbage Patch Reduction Initiative",
+      summary: "International cleanup efforts show 12% reduction in plastic concentration",
+      impact: "Positive",
+      date: "3 hours ago",
+      source: "Ocean Cleanup Foundation",
+      link: "https://theoceancleanup.com"
+    },
+    {
+      title: "Caribbean Coral Restoration Success",
+      summary: "New coral planting techniques show 78% survival rate in warming waters",
+      impact: "Positive",
+      date: "6 hours ago",
+      source: "Marine Biology Institute",
+      link: "https://www.nature.org"
+    },
+    {
+      title: "Arctic Sea Ice Monitoring Alert",
+      summary: "Accelerated melting rates detected in northern ice sheets",
+      impact: "High",
+      date: "12 hours ago",
+      source: "NOAA Climate Center",
+      link: "https://www.climate.gov"
+    },
+    {
+      title: "Phytoplankton Bloom Recovery",
+      summary: "North Atlantic shows increased marine productivity indicators",
+      impact: "Positive",
+      date: "1 day ago",
+      source: "NASA Earth Observatory",
+      link: "https://earthobservatory.nasa.gov"
+    }
+  ];
+
+
 
   // Dynamic open letters based on current conditions
   const openLetters = [
@@ -289,8 +327,8 @@ Application deadlines and funding details available on our portal.`
                 <div className="flex items-start justify-between mb-6">
                   <div className="text-4xl">{reward.icon}</div>
                   <div className={`px-3 py-1 rounded-full text-xs font-semibold ${reward.category === 'Innovation' ? 'bg-purple-500/20 text-purple-200' :
-                      reward.category === 'Research' ? 'bg-blue-500/20 text-blue-200' :
-                        'bg-green-500/20 text-green-200'
+                    reward.category === 'Research' ? 'bg-blue-500/20 text-blue-200' :
+                      'bg-green-500/20 text-green-200'
                     }`}>
                     {reward.category}
                   </div>
@@ -443,6 +481,42 @@ Application deadlines and funding details available on our portal.`
             ))}
           </div>
 
+          {/* News Section */}
+        <section className="py-16 px-6 bg-gray-50">
+          <div className="container mx-auto max-w-6xl">
+            <div className="text-center space-y-4 mb-12">
+              <h2 className="text-3xl font-bold text-gray-800">Ocean Health Updates</h2>
+              <p className="text-gray-600">Latest developments in marine conservation and research</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {newsItems.map((news, index) => (
+                <a
+                  key={index}
+                  href={news.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`block bg-white rounded-xl p-5 shadow-sm hover:shadow-md transition-all duration-300 border ${index === currentNews ? 'border-blue-300 shadow-md' : 'border-gray-200'
+                    }`}
+                >
+                  <div className="flex justify-between items-start mb-3">
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${news.impact === 'Positive' ? 'bg-green-100 text-green-800' :
+                      news.impact === 'High' ? 'bg-orange-100 text-orange-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                      {news.impact}
+                    </span>
+                    <span className="text-xs text-gray-500">{news.date}</span>
+                  </div>
+                  <h4 className="font-semibold text-sm text-gray-800 mb-2">{news.title}</h4>
+                  <p className="text-xs text-gray-600 mb-3">{news.summary}</p>
+                  <p className="text-xs text-blue-600 font-medium">{news.source}</p>
+                </a>
+              ))}
+            </div>
+          </div>
+        </section>
+
           {/* Call to Action */}
           <div className="mt-20 text-center">
             <div className="bg-white rounded-3xl p-12 shadow-xl border border-gray-100 max-w-4xl mx-auto">
@@ -461,6 +535,7 @@ Application deadlines and funding details available on our portal.`
             </div>
           </div>
         </div>
+
       </main>
 
       {/* Enhanced Footer */}
@@ -555,7 +630,7 @@ Application deadlines and funding details available on our portal.`
           </div>
         </div>
       </footer>
-      
+
       {/* Letter Modal */}
       {selectedLetter && (
         <div
