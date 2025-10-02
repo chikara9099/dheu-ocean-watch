@@ -149,7 +149,7 @@ function Home() {
                 <div className="overflow-hidden rounded-lg mb-4">
                   <img
                     src="/assets/satelite.avif"
-                    alt="Satellite image showing colorful ocean temperature variations"
+                    /*alt="Satellite image showing colorful ocean temperature variations"*/
                     className="w-full h-64 object-cover transition-transform duration-300 group-hover:scale-110"
                   />
                 </div>

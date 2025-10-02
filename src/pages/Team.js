@@ -54,7 +54,7 @@ const Team = () => {
       name: "Md. Sium",
       role: "Some role",
       bio: "Role niye bhekbhek.",
-      image: "/assets/team-5.avif",
+      image: "/assets/sium.png",
     },
     {
       name: "Sourav Sarker",
