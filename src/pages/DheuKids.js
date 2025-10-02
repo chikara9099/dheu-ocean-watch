@@ -182,7 +182,7 @@ const DheuKids = () => {
       setCurrentNews((prev) => (prev + 1) % newsItems.length);
     }, 8000);
     return () => clearInterval(interval);
-  }, []);
+  }, [newsItems.length]);
 
   const handleCharacterClick = () => {
     setIsCharacterSpeaking(true);
