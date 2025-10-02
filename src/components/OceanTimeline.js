@@ -1,124 +1,178 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 
 const OceanTimeline = () => {
   const [currentDataType, setCurrentDataType] = useState('sst');
   const [currentFrameIndex, setCurrentFrameIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [frames, setFrames] = useState([]);
   const [loading, setLoading] = useState(true);
   const [imageLoading, setImageLoading] = useState(true);
+  const [preloadProgress, setPreloadProgress] = useState(0);
+  const [imageCache] = useState(new Map());
 
-  // Generate timeline frames from actual PNG files (Sea Surface Temperature)
-  const generateSSTFrames = () => {
-    const sstFrames = [];
-    
+  // Memoize frame generation to avoid recalculation
+  const sstFrames = useMemo(() => {
+    const frames = [];
     const years = ['03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '24', '25'];
     const months = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
     
     years.forEach(year => {
       months.forEach(month => {
         const fullYear = 2000 + parseInt(year);
-        const day = '01';
-        const filename = `${month}_${day}_${year}.png`;
+        const filename = `${month}_01_${year}.png`;
         
-        sstFrames.push({
+        frames.push({
           id: `sst-${fullYear}-${month}`,
           date: new Date(fullYear, parseInt(month) - 1, 1),
           year: fullYear,
           month,
           displayName: `${fullYear}-${month}`,
           type: 'sst',
-          filename: filename,
           imagePath: `/assets/sst/images/${filename}`,
           label: `SST ${fullYear}-${month}`,
-          description: `Sea Surface Temperature - ${new Date(fullYear, parseInt(month) - 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`
         });
       });
     });
     
-    return sstFrames.sort((a, b) => a.date - b.date);
-  };
+    return frames.sort((a, b) => a.date - b.date);
+  }, []);
 
-  // Generate timeline frames from SSS PNG files (Sea Surface Salinity)
-  const generateSSSFrames = () => {
-    const sssFrames = [];
-    
+  const sssFrames = useMemo(() => {
+    const frames = [];
     const years = [2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023];
     const months = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
     
     years.forEach(year => {
       months.forEach(month => {
         if (year === 2015 && parseInt(month) < 4) return;
-        if (year === 2016 && parseInt(month) < 1) return;
-        
         const filename = `${month}_${year}.png`;
         
-        sssFrames.push({
+        frames.push({
           id: `sss-${year}-${month}`,
           date: new Date(year, parseInt(month) - 1, 1),
           year,
           month,
           displayName: `${year}-${month}`,
           type: 'sss',
-          filename: filename,
           imagePath: `/assets/sss/pngs/${filename}`,
           label: `SSS ${year}-${month}`,
-          description: `Sea Surface Salinity - ${new Date(year, parseInt(month) - 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`
         });
       });
     });
     
-    return sssFrames.sort((a, b) => a.date - b.date);
-  };
+    return frames.sort((a, b) => a.date - b.date);
+  }, []);
 
-  // Generate timeline frames from CHL PNG files (Chlorophyll-a Concentration)
-  const generateCHLFrames = () => {
-    const chlFrames = [];
-    
+  const chlFrames = useMemo(() => {
+    const frames = [];
     const years = ['03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '24', '25'];
     const months = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
     
     years.forEach(year => {
       months.forEach(month => {
         const fullYear = 2000 + parseInt(year);
-        const day = '01';
-        const filename = `${month}_${day}_${year}.png`;
+        const filename = `${month}_01_${year}.png`;
 
-        chlFrames.push({
+        frames.push({
           id: `chl-${fullYear}-${month}`,
           date: new Date(fullYear, parseInt(month) - 1, 1),
           year: fullYear,
           month,
           displayName: `${fullYear}-${month}`,
           type: 'chl',
-          filename: filename,
           imagePath: `/assets/chl/${filename}`,
           label: `CHL ${fullYear}-${month}`,
-          description: `Chlorophyll-a Concentration - ${new Date(fullYear, parseInt(month) - 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`
         });
       });
     });
     
-    return chlFrames.sort((a, b) => a.date - b.date);
-  };
+    return frames.sort((a, b) => a.date - b.date);
+  }, []);
 
-  // Load frames based on current data type
-  useEffect(() => {
-    setLoading(true);
-    let newFrames = [];
+  const frames = useMemo(() => {
+    if (currentDataType === 'sst') return sstFrames;
+    if (currentDataType === 'sss') return sssFrames;
+    if (currentDataType === 'chl') return chlFrames;
+    return [];
+  }, [currentDataType, sstFrames, sssFrames, chlFrames]);
+
+  // Preload images in batches
+  const preloadImages = useCallback(async (framesToPreload) => {
+    const batchSize = 5; // Load 5 images at a time
+    const totalImages = framesToPreload.length;
+    let loadedCount = 0;
+
+    for (let i = 0; i < framesToPreload.length; i += batchSize) {
+      const batch = framesToPreload.slice(i, i + batchSize);
+      
+      await Promise.allSettled(
+        batch.map(frame => {
+          return new Promise((resolve) => {
+            if (imageCache.has(frame.imagePath)) {
+              loadedCount++;
+              setPreloadProgress(Math.round((loadedCount / totalImages) * 100));
+              resolve();
+              return;
+            }
+
+            const img = new Image();
+            img.onload = () => {
+              imageCache.set(frame.imagePath, img);
+              loadedCount++;
+              setPreloadProgress(Math.round((loadedCount / totalImages) * 100));
+              resolve();
+            };
+            img.onerror = () => {
+              loadedCount++;
+              setPreloadProgress(Math.round((loadedCount / totalImages) * 100));
+              resolve();
+            };
+            img.src = frame.imagePath;
+          });
+        })
+      );
+    }
+  }, [imageCache]);
+
+  // Preload nearby frames for smooth navigation
+  const preloadNearbyFrames = useCallback((currentIndex) => {
+    const range = 3; // Preload 3 frames before and after
+    const indicesToPreload = [];
     
-    if (currentDataType === 'sst') {
-      newFrames = generateSSTFrames();
-    } else if (currentDataType === 'sss') {
-      newFrames = generateSSSFrames();
-    } else if (currentDataType === 'chl') {
-      newFrames = generateCHLFrames();
+    for (let i = Math.max(0, currentIndex - range); i <= Math.min(frames.length - 1, currentIndex + range); i++) {
+      if (!imageCache.has(frames[i].imagePath)) {
+        indicesToPreload.push(frames[i]);
+      }
     }
     
-    setFrames(newFrames);
+    if (indicesToPreload.length > 0) {
+      preloadImages(indicesToPreload);
+    }
+  }, [frames, imageCache, preloadImages]);
+
+  // Initial load
+  useEffect(() => {
+    setLoading(true);
     setCurrentFrameIndex(0);
-    setLoading(false);
-  }, [currentDataType]);
+    setPreloadProgress(0);
+    
+    // Preload first 10 frames immediately
+    const initialFrames = frames.slice(0, 10);
+    preloadImages(initialFrames).then(() => {
+      setLoading(false);
+      
+      // Continue preloading rest in background
+      if (frames.length > 10) {
+        preloadImages(frames.slice(10));
+      }
+    });
+  }, [currentDataType, frames, preloadImages]);
+
+  // Preload nearby frames when index changes
+  useEffect(() => {
+    if (!loading) {
+      preloadNearbyFrames(currentFrameIndex);
+    }
+  }, [currentFrameIndex, loading, preloadNearbyFrames]);
 
   // Auto-play functionality
   useEffect(() => {
@@ -126,25 +180,25 @@ const OceanTimeline = () => {
     
     const interval = setInterval(() => {
       setCurrentFrameIndex(prev => (prev + 1) % frames.length);
-    }, 1000);
+    }, 800); // Slightly faster playback
     
     return () => clearInterval(interval);
   }, [isPlaying, frames.length]);
 
   const currentFrame = frames[currentFrameIndex];
 
-  const handleFrameClick = (index) => {
+  const handleFrameClick = useCallback((index) => {
     setCurrentFrameIndex(index);
     setIsPlaying(false);
-  };
+  }, []);
 
-  const handleImageLoad = () => {
+  const handleImageLoad = useCallback(() => {
     setImageLoading(false);
-  };
+  }, []);
 
-  const handleImageError = () => {
+  const handleImageError = useCallback(() => {
     setImageLoading(false);
-  };
+  }, []);
 
   if (loading) {
     return (
@@ -152,6 +206,17 @@ const OceanTimeline = () => {
         <div className="flex flex-col items-center space-y-4">
           <div className="w-12 h-12 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin"></div>
           <p className="text-gray-600 font-medium">Loading ocean data...</p>
+          {preloadProgress > 0 && (
+            <div className="w-64">
+              <div className="bg-gray-200 rounded-full h-2">
+                <div
+                  className="bg-gray-600 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${preloadProgress}%` }}
+                ></div>
+              </div>
+              <p className="text-xs text-gray-500 text-center mt-2">{preloadProgress}% loaded</p>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -215,7 +280,7 @@ const OceanTimeline = () => {
             <div className="flex-1 p-6 flex items-center justify-center bg-gray-50">
               {currentFrame && (
                 <div className="relative max-w-full max-h-full">
-                  {imageLoading && (
+                  {imageLoading && !imageCache.has(currentFrame.imagePath) && (
                     <div className="absolute inset-0 flex items-center justify-center bg-gray-100 rounded">
                       <div className="w-8 h-8 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin"></div>
                     </div>
@@ -223,20 +288,14 @@ const OceanTimeline = () => {
                   <img
                     src={currentFrame.imagePath}
                     alt={currentFrame.label}
-                    className={`max-w-full max-h-full object-contain rounded shadow-sm transition-opacity duration-300 ${
-                      imageLoading ? 'opacity-0' : 'opacity-100'
+                    className={`max-w-full max-h-full object-contain rounded shadow-sm transition-opacity duration-200 ${
+                      imageLoading && !imageCache.has(currentFrame.imagePath) ? 'opacity-0' : 'opacity-100'
                     }`}
                     onLoad={handleImageLoad}
                     onError={handleImageError}
-                    onLoadStart={() => setImageLoading(true)}
+                    onLoadStart={() => !imageCache.has(currentFrame.imagePath) && setImageLoading(true)}
+                    loading="eager"
                   />
-                  
-                  {/* Image not available fallback */}
-                  <div className="bg-gray-100 p-8 rounded text-center hidden">
-                    <div className="text-gray-400 text-4xl mb-2">⚠</div>
-                    <p className="text-gray-500 text-sm">Image not available</p>
-                    <p className="text-gray-400 text-xs mt-1">{currentFrame.filename}</p>
-                  </div>
                 </div>
               )}
             </div>
@@ -249,7 +308,8 @@ const OceanTimeline = () => {
                   {/* Current Frame Info */}
                   <div className="bg-gray-50 rounded-lg p-4">
                     <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
-                      {currentDataType === 'sst' ? 'Sea Surface Temperature' : 'Sea Surface Salinity'}
+                      {currentDataType === 'sst' ? 'Sea Surface Temperature' : 
+                       currentDataType === 'sss' ? 'Sea Surface Salinity' : 'Chlorophyll-a'}
                     </div>
                     <div className="text-2xl font-bold text-gray-900 mb-1">
                       {new Date(currentFrame.year, parseInt(currentFrame.month) - 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
@@ -267,7 +327,7 @@ const OceanTimeline = () => {
                     <div className="flex space-x-2">
                       <input
                         type="number"
-                        min="0"
+                        min="1"
                         max={frames.length}
                         value={currentFrameIndex + 1}
                         onChange={(e) => {
@@ -303,7 +363,7 @@ const OceanTimeline = () => {
                       <button
                         onClick={() => setCurrentFrameIndex(Math.max(0, currentFrameIndex - 1))}
                         disabled={currentFrameIndex === 0}
-                        className="flex items-center justify-center px-3 py-2.5 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-400 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:border-gray-300 transition-all duration-200 shadow-sm hover:shadow-md"
+                        className="flex items-center justify-center px-3 py-2.5 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow-md"
                       >
                         <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -314,7 +374,7 @@ const OceanTimeline = () => {
                       <button
                         onClick={() => setCurrentFrameIndex(Math.min(frames.length - 1, currentFrameIndex + 1))}
                         disabled={currentFrameIndex === frames.length - 1}
-                        className="flex items-center justify-center px-3 py-2.5 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-400 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:border-gray-300 transition-all duration-200 shadow-sm hover:shadow-md"
+                        className="flex items-center justify-center px-3 py-2.5 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow-md"
                       >
                         Next
                         <svg className="w-4 h-4 ml-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -375,19 +435,9 @@ const OceanTimeline = () => {
                     </div>
                   )}
 
-                  {/* Data Info */}
-                  <div className="space-y-3">
-                    <div className="text-xs font-medium text-gray-700 uppercase tracking-wide">
-                      Data Source
-                    </div>
-                    <div className="text-sm text-gray-600 space-y-1">
-                      <p>Satellite imagery processed from:</p>
-                      <ul className="text-xs space-y-1 ml-4">
-                        <li>• NASA Earth Observation</li>
-                        <li>• NOAA Climate Data</li>
-                        <li>• ESA Sentinel Missions</li>
-                      </ul>
-                    </div>
+                  {/* Cache Status */}
+                  <div className="text-xs text-gray-500">
+                    {imageCache.size} images cached
                   </div>
                 </div>
               )}
@@ -406,7 +456,6 @@ const OceanTimeline = () => {
                       ? 'bg-gray-900 text-white'
                       : 'bg-gray-50 text-gray-600 hover:text-gray-900'
                   }`}
-                  title={frame.description}
                 >
                   {frame.displayName}
                 </button>
