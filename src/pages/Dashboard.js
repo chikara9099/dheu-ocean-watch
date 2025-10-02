@@ -1,57 +1,115 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Waves, MapPin, Calendar, TrendingUp, AlertCircle, Download } from 'lucide-react';
 
 const Dashboard = () => {
-  const [openFaq, setOpenFaq] = useState(null);
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [west, setWest] = useState('88');
+  const [south, setSouth] = useState('20');
+  const [east, setEast] = useState('92');
+  const [north, setNorth] = useState('22');
+  const [width, setWidth] = useState(512);
+  const [height, setHeight] = useState(512);
+  const [apiResponse, setApiResponse] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [selectedRegion, setSelectedRegion] = useState('custom');
 
-  const faqs = [
-    {
-      id: 1,
-      question: "How does the dashboard work?",
-      answer:
-        "The dashboard aggregates news from multiple portals and displays current ocean conditions like oil slicks and temperature using NASA Earth data.",
-    },
-    {
-      id: 2,
-      question: "What kind of data is displayed?",
-      answer:
-        "DHEU uses NASA Earth data and trusted news portals to simulate ocean conditions such as waste, chemical products, and temperature in a 2D interactive map.",
-    },
-    {
-      id: 3,
-      question: "Is this tool educational?",
-      answer:
-        "Yes, DHEU aims to educate users on ocean health by providing real-time data and interactive simulations for better understanding.",
-    },
-    {
-      id: 4,
-      question: "How is news shared across the platform?",
-      answer:
-        "News updates are aggregated from trusted environmental and scientific sources, then categorized for clarity and relevance.",
-    },
-    {
-      id: 5,
-      question: "What data sources are used?",
-      answer:
-        "DHEU uses NASA Earth data and trusted news portals to simulate ocean conditions such as waste, chemical products, and temperature in a 2D interactive map.",
-    },
-    {
-      id: 6,
-      question: "Who is Team Sargonauts?",
-      answer:
-        "Team SARgonauts is the group behind DHEU, dedicated to educating users about ocean health through innovative web tools.",
-    },
-  ];
+  const presetRegions = {
+    'Bay of Bengal': { west: 88, south: 20, east: 92, north: 22 },
+    'Arabian Sea': { west: 65, south: 15, east: 75, north: 25 },
+    'Gulf of Mexico': { west: -98, south: 24, east: -82, north: 30 },
+    'Mediterranean Sea': { west: 0, south: 35, east: 42, north: 46 },
+    'North Sea': { west: -4, south: 51, east: 12, north: 62 },
+    'South China Sea': { west: 105, south: 0, east: 120, north: 25 }
+  };
 
-  const toggleFaq = (id) => {
-    setOpenFaq(openFaq === id ? null : id);
+  useEffect(() => {
+    const end = new Date();
+    const start = new Date();
+    start.setDate(start.getDate() - 7);
+    setEndDate(end.toISOString().split('T')[0]);
+    setStartDate(start.toISOString().split('T')[0]);
+  }, []);
+
+  const handleRegionChange = (region) => {
+    setSelectedRegion(region);
+    if (region !== 'custom' && presetRegions[region]) {
+      const coords = presetRegions[region];
+      setWest(coords.west.toString());
+      setSouth(coords.south.toString());
+      setEast(coords.east.toString());
+      setNorth(coords.north.toString());
+    }
+  };
+
+  const handleSubmit = async () => {
+    setLoading(true);
+    setError(null);
+    setApiResponse(null);
+
+    const queryParams = new URLSearchParams({
+      start_date: startDate,
+      end_date: endDate,
+      width: width,
+      height: height,
+    }).toString();
+
+    const requestBody = {
+      west: parseFloat(west),
+      south: parseFloat(south),
+      east: parseFloat(east),
+      north: parseFloat(north),
+    };
+
+    try {
+      const response = await fetch(`/average-sea-roughness?${queryParams}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `API error: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      setApiResponse(data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getRoughnessStatus = (value) => {
+    if (value < 0.02) return { label: 'Very Calm', color: 'text-green-600', bg: 'bg-green-50', border: 'border-green-200' };
+    if (value < 0.04) return { label: 'Calm', color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-200' };
+    if (value < 0.06) return { label: 'Moderate', color: 'text-yellow-600', bg: 'bg-yellow-50', border: 'border-yellow-200' };
+    if (value < 0.08) return { label: 'Rough', color: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-200' };
+    return { label: 'Very Rough', color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-200' };
+  };
+
+  const downloadResults = () => {
+    const dataStr = JSON.stringify(apiResponse, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `sea-roughness-${startDate}-to-${endDate}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
   };
 
   return (
-    <>
-      {/* Header / Navbar (Sticky) */}
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
       <header
-        className="bg-white/90 backdrop-blur-md shadow-sm sticky top-0 z-50 transition-all duration-300 hover:shadow-lg border-b border-blue-100/50"
-        style={{ height: '120px' }}
+        id="header"
+        className="bg-white shadow-sm sticky top-0 z-50 transition-all duration-300 hover:shadow-lg"
+        style={{ height: '145px' }}
       >
         <div className="container mx-auto px-4 flex items-center justify-between h-full">
           {/* Logo */}
@@ -59,7 +117,7 @@ const Dashboard = () => {
             <img
               src="/assets/DHEU.png"
               alt="DHEU logo"
-              className="h-16 md:h-20 transition-all duration-200"
+              className="h-20 md:h-24 transition-all duration-200"
             />
           </a>
 
@@ -89,201 +147,244 @@ const Dashboard = () => {
         </div>
       </header>
 
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 font-sans text-gray-800 relative overflow-x-hidden">
-      {/* Animated Background Elements */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-20 left-10 w-96 h-96 bg-blue-200/20 rounded-full mix-blend-multiply filter blur-xl animate-pulse"></div>
-        <div className="absolute bottom-20 right-10 w-80 h-80 bg-cyan-200/20 rounded-full mix-blend-multiply filter blur-xl animate-pulse delay-1000"></div>
-        <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-purple-200/20 rounded-full mix-blend-multiply filter blur-xl animate-pulse delay-500"></div>
+      <div className="fixed inset-0 pointer-events-none overflow-hidden opacity-30">
+        <div className="absolute top-20 left-10 w-96 h-96 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl animate-pulse" />
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-cyan-200 rounded-full mix-blend-multiply filter blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
       </div>
 
-      {/* Hero Header */}
-      <section className="relative py-16 px-4 sm:px-8">
-        <div className="container mx-auto text-center relative z-10">
-          <div className="transform hover:scale-105 transition-all duration-500">
-            <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-blue-600 via-cyan-600 to-blue-800 bg-clip-text text-transparent mb-6">
-              Ocean Health Dashboard
-            </h1>
-            <p className="text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              Real-time monitoring powered by NASA data and global news sources
-            </p>
+      <section className="relative py-20 px-4">
+        <div className="container mx-auto text-center max-w-4xl">
+          <div className="inline-flex items-center gap-3 mb-6 px-6 py-3 bg-blue-100/60 backdrop-blur-sm rounded-full border border-blue-200/50">
+            <Waves className="w-5 h-5 text-blue-600" />
+            <span className="text-sm font-semibold text-blue-700">Sentinel-1 SAR Analysis</span>
           </div>
-          
-          {/* Floating Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12 max-w-4xl mx-auto">
-            {[
-              { label: 'Data Sources', value: '15+', icon: '📊' },
-              { label: 'Live Updates', value: '24/7', icon: '⚡' },
-              { label: 'Ocean Coverage', value: '100%', icon: '🌊' }
-            ].map((stat, index) => (
-              <div 
-                key={index}
-                className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 shadow-lg hover:shadow-xl transform hover:-translate-y-2 transition-all duration-300 border border-white/30"
-              >
-                <div className="text-3xl mb-2">{stat.icon}</div>
-                <div className="text-2xl font-bold text-gray-800">{stat.value}</div>
-                <div className="text-gray-600">{stat.label}</div>
-              </div>
-            ))}
-          </div>
+          <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-blue-600 via-cyan-500 to-blue-700 bg-clip-text text-transparent mb-6">
+            Sea Surface Roughness Monitor
+          </h1>
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            Real-time ocean surface analysis using Sentinel-1 synthetic aperture radar data
+          </p>
         </div>
       </section>
 
-      {/* Main Content */}
-      <main className="container mx-auto px-4 sm:px-8 py-12 grid grid-cols-1 lg:grid-cols-2 gap-16 items-start relative z-10">
-        
-        {/* Left Side - FAQ Cards */}
-        <div className="space-y-8">
-          <div className="text-center lg:text-left">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">Frequently Asked Questions</h2>
-            <p className="text-gray-600 text-lg">Everything you need to know about our ocean monitoring system</p>
-          </div>
+      <main className="container mx-auto px-4 pb-20 relative z-10">
+        <div className="max-w-5xl mx-auto">
+          <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl border border-white/50 overflow-hidden">
+            <div className="bg-gradient-to-r from-blue-600 to-cyan-600 p-8 text-white">
+              <h2 className="text-3xl font-bold mb-2">Query Configuration</h2>
+              <p className="text-blue-100">Configure your area of interest and time range</p>
+            </div>
 
-          <div className="space-y-4">
-            {faqs.map((faq, index) => (
-              <div
-                key={faq.id}
-                className="bg-white/70 backdrop-blur-sm border border-white/50 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group"
-                style={{ animationDelay: `${index * 100}ms` }}
-              >
-                <button
-                  onClick={() => toggleFaq(faq.id)}
-                  className="w-full px-6 py-5 text-left flex justify-between items-center bg-gradient-to-r from-transparent to-blue-50/30 hover:from-blue-50/30 hover:to-cyan-50/30 transition-all duration-300"
-                  aria-expanded={openFaq === faq.id}
-                >
-                  <span className="font-semibold text-gray-800 group-hover:text-blue-700 transition-colors duration-200">
-                    {faq.question}
-                  </span>
-                  <div className="relative">
-                    <div className="w-8 h-8 rounded-full bg-blue-100 group-hover:bg-blue-200 flex items-center justify-center transition-all duration-200">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className={`h-4 w-4 text-blue-600 transform transition-transform duration-300 ${
-                          openFaq === faq.id ? 'rotate-180' : ''
-                        }`}
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
+            <div className="p-8 space-y-8">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="space-y-6">
+                  <div>
+                    <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-3">
+                      <MapPin className="w-4 h-4" />
+                      Region Selection
+                    </label>
+                    <select
+                      value={selectedRegion}
+                      onChange={(e) => handleRegionChange(e.target.value)}
+                      className="w-full px-4 py-3 rounded-xl bg-gray-50 border-2 border-gray-200 focus:border-blue-500 focus:bg-white transition-all outline-none"
+                    >
+                      <option value="custom">Custom Coordinates</option>
+                      {Object.keys(presetRegions).map((region) => (
+                        <option key={region} value={region}>{region}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">West (°)</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={west}
+                        onChange={(e) => { setWest(e.target.value); setSelectedRegion('custom'); }}
+                        className="w-full px-4 py-3 rounded-xl bg-gray-50 border-2 border-gray-200 focus:border-blue-500 focus:bg-white transition-all outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">East (°)</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={east}
+                        onChange={(e) => { setEast(e.target.value); setSelectedRegion('custom'); }}
+                        className="w-full px-4 py-3 rounded-xl bg-gray-50 border-2 border-gray-200 focus:border-blue-500 focus:bg-white transition-all outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">South (°)</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={south}
+                        onChange={(e) => { setSouth(e.target.value); setSelectedRegion('custom'); }}
+                        className="w-full px-4 py-3 rounded-xl bg-gray-50 border-2 border-gray-200 focus:border-blue-500 focus:bg-white transition-all outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">North (°)</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={north}
+                        onChange={(e) => { setNorth(e.target.value); setSelectedRegion('custom'); }}
+                        className="w-full px-4 py-3 rounded-xl bg-gray-50 border-2 border-gray-200 focus:border-blue-500 focus:bg-white transition-all outline-none"
+                      />
                     </div>
                   </div>
-                </button>
+                </div>
 
-                <div
-                  className={`overflow-hidden bg-white/50 backdrop-blur-sm transition-all duration-500 ease-out ${
-                    openFaq === faq.id ? 'max-h-48 opacity-100' : 'max-h-0 opacity-0'
-                  }`}
-                >
-                  <div className="px-6 py-5">
-                    <p className="text-gray-700 leading-relaxed">{faq.answer}</p>
+                <div className="space-y-6">
+                  <div>
+                    <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-3">
+                      <Calendar className="w-4 h-4" />
+                      Time Range
+                    </label>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
+                        <input
+                          type="date"
+                          value={startDate}
+                          onChange={(e) => setStartDate(e.target.value)}
+                          className="w-full px-4 py-3 rounded-xl bg-gray-50 border-2 border-gray-200 focus:border-blue-500 focus:bg-white transition-all outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">End Date</label>
+                        <input
+                          type="date"
+                          value={endDate}
+                          onChange={(e) => setEndDate(e.target.value)}
+                          className="w-full px-4 py-3 rounded-xl bg-gray-50 border-2 border-gray-200 focus:border-blue-500 focus:bg-white transition-all outline-none"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Width (px)</label>
+                      <input
+                        type="number"
+                        value={width}
+                        onChange={(e) => setWidth(e.target.value)}
+                        className="w-full px-4 py-3 rounded-xl bg-gray-50 border-2 border-gray-200 focus:border-blue-500 focus:bg-white transition-all outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Height (px)</label>
+                      <input
+                        type="number"
+                        value={height}
+                        onChange={(e) => setHeight(e.target.value)}
+                        className="w-full px-4 py-3 rounded-xl bg-gray-50 border-2 border-gray-200 focus:border-blue-500 focus:bg-white transition-all outline-none"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
 
-        {/* Right Side - Enhanced Images & Info */}
-        <div className="space-y-8">
-          {/* Image 1: Dashboard Preview */}
-          <div className="bg-white/60 backdrop-blur-sm rounded-3xl shadow-xl overflow-hidden border border-white/30 hover:shadow-2xl transform hover:-translate-y-2 transition-all duration-500 group">
-            <div className="relative overflow-hidden">
-              <img
-                src="/assets/data.avif"
-                alt="Digital dashboard displaying oceanic data and environmental indicators"
-                className="w-full h-72 object-cover transition-transform duration-700 group-hover:scale-110"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-blue-900/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-              <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1 text-sm font-medium text-gray-700">
-                Live Data
-              </div>
-            </div>
-            <div className="p-8">
-              <h3 className="text-2xl font-bold text-gray-800 mb-3 group-hover:text-blue-700 transition-colors duration-200">
-                Real-Time Ocean Dashboard
-              </h3>
-              <p className="text-gray-600 leading-relaxed mb-4">
-                Monitor oil slicks, temperature changes, and pollution levels using live satellite feeds from NASA and international agencies.
-              </p>
-              <div className="flex items-center text-blue-600 font-medium group-hover:text-blue-700 transition-colors duration-200">
-                <span>Explore Dashboard</span>
-                <svg className="w-4 h-4 ml-2 transform group-hover:translate-x-1 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </div>
-            </div>
-          </div>
-
-          {/* Image 2: Simulator Preview */}
-          <div className="bg-white/60 backdrop-blur-sm rounded-3xl shadow-xl overflow-hidden border border-white/30 hover:shadow-2xl transform hover:-translate-y-2 transition-all duration-500 group">
-            <div className="relative overflow-hidden">
-              <img
-                src="/assets/moyla.avif"
-                alt="Interactive 2D ocean simulator illustrating pollution and temperature"
-                className="w-full h-72 object-cover transition-transform duration-700 group-hover:scale-110"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-cyan-900/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-              <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1 text-sm font-medium text-gray-700">
-                Interactive
-              </div>
-            </div>
-            <div className="p-8">
-              <h3 className="text-2xl font-bold text-gray-800 mb-3 group-hover:text-cyan-700 transition-colors duration-200">
-                Interactive 2D Ocean Simulator
-              </h3>
-              <p className="text-gray-600 leading-relaxed mb-4">
-                Visualize how pollutants spread and how temperature shifts affect marine ecosystems in real-time simulations.
-              </p>
-              <a
-                href="/simulator"
-                className="inline-flex items-center text-cyan-600 font-medium hover:text-cyan-700 transition-colors duration-200"
+              <button
+                onClick={handleSubmit}
+                disabled={loading}
+                className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold py-4 px-8 rounded-xl transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-3"
               >
-                <span>Explore Simulator</span>
-                <svg className="w-4 h-4 ml-2 transform group-hover:translate-x-1 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </a>
+                {loading ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Analyzing Sea Surface...
+                  </>
+                ) : (
+                  <>
+                    <TrendingUp className="w-5 h-5" />
+                    Calculate Sea Roughness
+                  </>
+                )}
+              </button>
             </div>
+
+            {error && (
+              <div className="mx-8 mb-8 p-6 bg-red-50 border-2 border-red-200 rounded-2xl">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <h3 className="font-semibold text-red-900 mb-1">API Request Failed</h3>
+                    <p className="text-red-700 text-sm mb-2">{error}</p>
+                    <p className="text-red-600 text-xs">
+                      Ensure your CDSE Sentinel Hub OAuth credentials are set as environment variables.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {apiResponse && (
+              <div className="mx-8 mb-8 space-y-6">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-2xl font-bold text-gray-800">Analysis Results</h3>
+                  <button
+                    onClick={downloadResults}
+                    className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors text-sm font-medium"
+                  >
+                    <Download className="w-4 h-4" />
+                    Export JSON
+                  </button>
+                </div>
+
+                {(() => {
+                  const status = getRoughnessStatus(apiResponse.average_sea_roughness_vv);
+                  return (
+                    <div className={`${status.bg} ${status.border} border-2 rounded-2xl p-8`}>
+                      <div className="text-center mb-6">
+                        <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full ${status.bg} ${status.border} border mb-4`}>
+                          <Waves className={`w-5 h-5 ${status.color}`} />
+                          <span className={`font-semibold ${status.color}`}>{status.label} Conditions</span>
+                        </div>
+                        <div className="text-6xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent mb-2">
+                          {apiResponse.average_sea_roughness_vv.toFixed(6)}
+                        </div>
+                        <p className="text-gray-600 font-medium">Average Sea Roughness (VV Polarization)</p>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="bg-white/60 backdrop-blur-sm rounded-xl p-4 text-center">
+                          <p className="text-sm text-gray-600 mb-1">Valid Pixels</p>
+                          <p className="text-2xl font-bold text-gray-800">{apiResponse.valid_pixels_count.toLocaleString()}</p>
+                        </div>
+                        <div className="bg-white/60 backdrop-blur-sm rounded-xl p-4 text-center">
+                          <p className="text-sm text-gray-600 mb-1">Time Range</p>
+                          <p className="text-sm font-semibold text-gray-800">{apiResponse.time_range.start}</p>
+                          <p className="text-sm font-semibold text-gray-800">{apiResponse.time_range.end}</p>
+                        </div>
+                        <div className="bg-white/60 backdrop-blur-sm rounded-xl p-4 text-center">
+                          <p className="text-sm text-gray-600 mb-1">Area Covered</p>
+                          <p className="text-xs font-mono text-gray-700">
+                            [{apiResponse.bounding_box.map(c => c.toFixed(1)).join(', ')}]
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="mt-6 p-4 bg-white/40 rounded-xl">
+                        <p className="text-sm text-gray-600 italic text-center">
+                          VV polarization backscatter indicates surface roughness. Lower values may indicate oil slicks or calm waters; higher values indicate rougher seas or wind effects.
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
           </div>
         </div>
       </main>
-
-      {/* Enhanced CTA Section */}
-      <section className="relative py-20 px-4 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-600 via-cyan-600 to-blue-800"></div>
-        <div className="absolute inset-0 opacity-20">
-          <div className="absolute top-0 left-0 w-96 h-96 bg-white rounded-full mix-blend-overlay filter blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-0 right-0 w-80 h-80 bg-cyan-300 rounded-full mix-blend-overlay filter blur-3xl animate-pulse delay-1000"></div>
-        </div>
-        
-        <div className="container mx-auto text-center relative z-10">
-          <div className="transform hover:scale-105 transition-all duration-500">
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">Ready to Dive In?</h2>
-            <p className="text-xl md:text-2xl text-blue-100 mb-12 max-w-3xl mx-auto leading-relaxed">
-              Use real-time data and simulations to understand and protect our oceans for future generations.
-            </p>
-          </div>
-          
-          <div className="flex flex-col sm:flex-row gap-6 justify-center">
-            <a
-              href="#explore"
-              className="bg-white text-blue-600 hover:bg-blue-50 font-semibold py-4 px-10 rounded-2xl transition-all duration-300 transform hover:scale-105 hover:shadow-2xl"
-            >
-              Explore Dashboard
-            </a>
-            <a
-              href="/simulator"
-              className="border-2 border-white text-white hover:bg-white/10 font-semibold py-4 px-10 rounded-2xl transition-all duration-300 transform hover:scale-105 backdrop-blur-sm"
-            >
-              Open Simulator
-            </a>
-          </div>
-        </div>
-      </section>
-
-      {/* Footer */}
+      
+      {/* Enhanced Footer */}
       <footer className="bg-gradient-to-br from-slate-800 via-slate-900 to-gray-900 text-white py-12 relative overflow-hidden">
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-blue-600/20 via-transparent to-cyan-600/20"></div>
@@ -333,7 +434,7 @@ const Dashboard = () => {
                   title="X (Twitter)"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor">
-                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.80l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
                   </svg>
                 </a>
               </div>
@@ -347,7 +448,7 @@ const Dashboard = () => {
 
             {/* Newsletter Section */}
             <div className="space-y-6">
-              <h4 className="text-xl font-bold text-white">INFO</h4>
+              <h4 className="text-xl font-bold text-white">Stay Updated</h4>
               <div className="space-y-4">
                 <label className="block">
                   <span className="text-sm font-medium text-gray-300 mb-2 block">Your Email Address</span>
@@ -370,13 +471,13 @@ const Dashboard = () => {
 
           <div className="text-center">
             <p className="text-gray-500 text-sm">
-              &copy; 2025. All rights reserved.
+              &copy; 2025 DHEU Ocean Watch. All rights reserved.
             </p>
           </div>
         </div>
       </footer>
-      </div>
-    </>
+
+    </div>
   );
 };
 

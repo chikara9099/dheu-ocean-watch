@@ -30,39 +30,39 @@ const Team = () => {
   const teamMembers = [
     {
       name: "Farhan Labib",
-      role: "Some role",
-      bio: "Role niye bhekbhek.",
+      role: "Backend & Data Integration Lead",
+      bio: "He sourced and processed real-time satellite data from NASA Earth, MODIS, and MADOS, building the pipeline that powers our entire system. ",
       image: "/assets/fala.jpg", 
     },
     {
       name: "Fatima Sad Sudipta",
-      role: "Some role",
-      bio: "Role niye bhekbhek.",
+      role: "Team Lead and UI/UX Designer",
+      bio: "She led the vision and crafted an intuitive, accessible interface that transforms complex ocean data into a clear, actionable experience for users of all ages.",
       image: "/assets/fss.jpg",
     },
     {
       name: "Shahriar Alam Patwary",
-      role: "Some role",
-      bio: "Role niye bhekbhek.",
+      role: "Data Modeler",
+      bio: "He designed the algorithmic framework for the ‘SARgonauts Index’, creating a weighted, multi-parameter scoring system to quantify ocean health in real time.",
       image: "/assets/sap.png",
     },
     {
       name: "Tasnim Tamal",
-      role: "Some role",
-      bio: "Role niye bhekbhek.",
+      role: "Frontend & Visualization Specialist",
+      bio: "He brought the data to life through interactive dashboards, simulators, and compelling visual storytelling that drives user engagement. ",
       image: "/assets/team-4.avif",
     },
     {
       name: "Md. Sium",
-      role: "Some role",
-      bio: "Role niye bhekbhek.",
+      role: "Digital Outreach Coordinator",
+      bio: "He designed our social media strategy, ensuring our findings reach the public and policymakers with clarity and impact. ",
       image: "/assets/sium.png",
     },
     {
       name: "Sourav Sarker",
-      role: "Some role",
-      bio: "Role niye bhekbhek.",
-      image: "/assets/team-6.avif",
+      role: "Machine Learning Engineer",
+      bio: "He developed predictive models to analyze pollution trends and simulate environmental changes, adding intelligence to our platform’s insights.",
+      image: "/assets/sourav.jpg",
     }
   ];
 
