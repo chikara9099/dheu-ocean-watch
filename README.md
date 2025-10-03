@@ -33,7 +33,8 @@ By integrating data from NASA Earth, MODIS, and ASF, DHEU Ocean Watch quantifies
 
 ### Mission Statement
 
-We are not just monitoring the ocean, we are giving it a voice. DHEU Ocean Watch serves as the bridge between the silent suffering of marine ecosystems and the urgent need for global awareness and action.
+We are not just monitoring the ocean; we are giving it a voice. DHEU Ocean Watch serves as the bridge between the silent suffering of marine ecosystems and the urgent need for global awareness and action. We meticulously gather crucial data and insights from the ocean's depths, transforming complex information into understandable narratives.
+But our mission doesn't stop there. We empower this voice through active dissemination. A dedicated agent ensures that vital information and urgent updates regarding ocean health are consistently pushed to social media platforms. This proactive approach guarantees that a mass audience is informed about the true state of our oceans, fostering a global community committed to understanding and protecting marine life.
 
 ## Problem Statement
 
@@ -165,6 +166,46 @@ Meet the minds behind the mission—introducing Team SARgonauts, the team that b
 ```
 
 The application is configured to communicate with a backend server for data processing and API integration.
+
+### dheu-backend (API)
+
+The project includes a Python-based backend located in the `dheu-backend/` folder that provides API endpoints for data processing (sea roughness, news aggregation, etc.). Key details:
+
+```json
+{
+  "language": "python",
+  "python_version": "3.10+ (recommended)",
+  "framework": "fastapi",
+  "server": "uvicorn",
+  "dependencies": [
+    "fastapi",
+    "uvicorn",
+    "requests",
+    "numpy",
+    "rasterio",
+    "python-dotenv",
+    "sentinelhub",
+    "google-genai",
+    "pydantic"
+  ]
+}
+```
+
+- The backend entrypoint is `dheu-backend/main.py` which mounts sub-apps at `/roughness` and `/news`.
+- CORS is enabled for development; adjust `allow_origins` in production.
+- See `dheu-backend/requirements.txt` for the full dependency list.
+
+To run the backend locally:
+
+```bash
+# from the project root
+cd dheu-backend
+pip install -r requirements.txt
+# start the ASGI server (development)
+uvicorn main:app --reload --port 8000
+```
+
+The frontend is configured to proxy API requests to `http://localhost:8000` during development (see the `proxy` key above).
 
 ## Installation
 
