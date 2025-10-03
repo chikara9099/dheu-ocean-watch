@@ -340,6 +340,19 @@ const Team = () => {
                     <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.80l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
                   </svg>
                 </a>
+
+                <a
+                  href="https://www.youtube.com/channel/UCrLyIFFhj4Z09ivz6zajTYw"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-10 h-10 bg-slate-700 hover:bg-red-600 rounded-full flex items-center justify-center transition-all duration-300 transform hover:scale-110 hover:rotate-12"
+                  title="YouTube"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24">
+                    <path fill="white" d="M22.05 7.74a2.91 2.91 0 0 0-2.06-2.06C18.25 5 12 5 12 5s-6.25 0-7.99.68a2.91 2.91 0 0 0-2.06 2.06C2 9.5 2 12 2 12s0 2.5.08 4.26a2.91 2.91 0 0 0 2.06 2.06c1.74.68 7.99.68 7.99.68s6.25 0 7.99-.68a2.91 2.91 0 0 0 2.06-2.06C22 14.5 22 12 22 12s0-2.5-.08-4.26z"/>
+                    <path fill="#334155" d="m9.7 15.51 5.38-3.09-5.38-3.09v6.18z"/>
+                  </svg>
+                </a>
               </div>
             </div>
 
