@@ -1,0 +1,9 @@
+version: "3.8"
+services:
+  dheu-backend:
+    build: .
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+    volumes:
+      - ./:/app   # optional: mount code for live changes during dev
