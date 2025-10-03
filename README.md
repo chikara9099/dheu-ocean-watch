@@ -61,19 +61,41 @@ DHEU Ocean Watch addresses these challenges by democratizing ocean health data a
 Provides visitors with a comprehensive understanding of our mission, the urgency of ocean conservation, and the technological approach we employ to monitor and protect marine environments.
 
 ### 2. **Dashboard - Real-Time Ocean Health Monitoring**
-The beating heart of our system, featuring:
 
-- **SARgonauts Index**: Proprietary scoring system (0-100) integrating seven critical parameters:
-  - Sea level anomalies
-  - Ocean color indices
-  - Wave frequency patterns
-  - Oil slick detection
-  - Marine waste accumulation
-  - Salinity variations
-  - Sea surface height deviations
-- Regional analysis with granular geographic resolution
-- Historical trend visualization and comparative analytics
-- Instant health status classification for any monitored region
+The beating heart of our system, featuring:  
+
+**SARgonauts Index**: A proprietary scoring system (0–100) integrating seven critical parameters with weighted contributions:  
+
+- **Sea Surface Temperature (20%)** – higher stability boosts score  
+- **Salinity (20%)** – vital for marine life balance  
+- **Ocean Color / Chlorophyll (20%)** – proxy for productivity and ecosystem health  
+- **Sea Surface Height (15%)** – moderate influence due to sea ice interactions  
+- **Wave Frequency / Roughness (10%)** – stability indicates calmer conditions  
+- **Oil Slicks (10%)** – negative factor, higher presence reduces score  
+- **Waste Accumulation (5%)** – negative factor, penalizes polluted regions  
+
+### Calculation  
+
+Each parameter is normalized to a 0–1 scale, multiplied by its weight, and summed into a final index:  
+
+\[
+\text{SARgonauts Index} = 100 \times \Big( 
+0.20 \cdot \text{SST} + 
+0.20 \cdot \text{Salinity} + 
+0.20 \cdot \text{OceanColor} + 
+0.15 \cdot \text{SSH} + 
+0.10 \cdot (1 - \text{Waves}) + 
+0.10 \cdot (1 - \text{Oil}) + 
+0.05 \cdot (1 - \text{Waste}) 
+\Big)
+\]  
+
+Where:  
+- Positive factors (**SST, Salinity, OceanColor, SSH**) increase the score.  
+- Negative factors (**Waves, Oil, Waste**) are inverted (1 – value) so higher levels reduce the score.  
+
+The dashboard provides **regional analysis**, **historical trends**, and **classifications** of ocean health for any monitored region.  
+
 
 ### 3. **Simulator - Environmental Impact Visualization**
 Where science meets storytelling:
