@@ -6,7 +6,7 @@
 
 > **World's First Ocean Health Broadcast System** - A real-time ocean monitoring platform that transforms satellite data into actionable intelligence for marine conservation.
 
-**Live Demo:** [https://cute-lolly-3e76dc.netlify.app/](https://cute-lolly-3e76dc.netlify.app/)
+**Live Demo:** [https://dheu-ocean-watch.netlify.app/](https://dheu-ocean-watch.netlify.app/)
 
 ---
 
