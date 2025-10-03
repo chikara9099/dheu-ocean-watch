@@ -63,7 +63,7 @@ const Dashboard = () => {
     };
 
     try {
-      const response = await fetch(`/average-sea-roughness?${queryParams}`, {
+      const response = await fetch(`https://dheu-backend.onrender.com/roughness/average-sea-roughness?${queryParams}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

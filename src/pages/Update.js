@@ -90,7 +90,12 @@ export default function Dashboard() {
     }
   ];
 
-
+  useEffect(() => {
+  const interval = setInterval(() => {
+    setCurrentNews((prev) => (prev + 1) % newsItems.length);
+  }, 6000);
+  return () => clearInterval(interval);
+}, [newsItems.length]);
 
   // Dynamic open letters based on current conditions
   const openLetters = [
