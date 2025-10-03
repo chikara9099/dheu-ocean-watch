@@ -77,23 +77,23 @@ The beating heart of our system, featuring:
 ### Calculation  
 
 Each parameter is normalized to a 0–1 scale, multiplied by its weight, and summed into a final index:  
+### Calculation  
 
-\[
-\text{SARgonauts Index} = 100 \times \Big( 
-0.20 \cdot \text{SST} + 
-0.20 \cdot \text{Salinity} + 
-0.20 \cdot \text{OceanColor} + 
-0.15 \cdot \text{SSH} + 
-0.10 \cdot (1 - \text{Waves}) + 
-0.10 \cdot (1 - \text{Oil}) + 
-0.05 \cdot (1 - \text{Waste}) 
-\Big)
-\]  
+Each parameter is normalized to a 0–1 scale, multiplied by its weight, and summed into a final index:  
 
-Where:  
+**SARgonauts Index = 100 × (  
+0.20 × SST +  
+0.20 × Salinity +  
+0.20 × OceanColor +  
+0.15 × SSH +  
+0.10 × (1 – Waves) +  
+0.10 × (1 – Oil) +  
+0.05 × (1 – Waste)  
+)**  
+
 - Positive factors (**SST, Salinity, OceanColor, SSH**) increase the score.  
 - Negative factors (**Waves, Oil, Waste**) are inverted (1 – value) so higher levels reduce the score.  
-
+ 
 The dashboard provides **regional analysis**, **historical trends**, and **classifications** of ocean health for any monitored region.  
 
 
