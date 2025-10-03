@@ -155,7 +155,7 @@ const DheuKids = () => {
     parameters: {
       temperature: "25.8°C",
       salinity: "35.1 PSU",
-      height: "+1.2mm/year",
+      height: "+3.5mm/year",
       color: "0.52 mg/m³",
       waves: "1.8m",
       oil: "0 km²",
@@ -170,7 +170,7 @@ const DheuKids = () => {
       temperature: "31.5°C",
       salinity: "31.8 PSU",
       height: "+6.2mm/year",
-      color: "0.08 mg/m³",
+      color: "0.61 mg/m³",
       waves: "4.1m",
       oil: "18 km²",
       waste: "67 items/km²"
@@ -466,9 +466,8 @@ const DheuKids = () => {
                   <h3 className="text-2xl font-semibold text-gray-800">Data Collection</h3>
                   <div className="space-y-4">
                     {[
-                      'NASA Earth Observation satellites provide temperature and color data',
+                      'NASA Earth Observation System (EOS) satellites provide temperature and color data',
                       'ESA Sentinel missions monitor sea surface height and salinity',
-                      'NOAA buoys collect real-time wave and weather information',
                       'Synthetic Aperture Radar detects oil slicks and waste patches',
                       'Machine learning processes millions of data points daily'
                     ].map((item, index) => (
@@ -573,7 +572,7 @@ const DheuKids = () => {
               {/* Social Icons */}
               <div className="flex space-x-4">
                 <a
-                  href="https://www.facebook.com/"
+                  href="https://www.facebook.com/profile.php?id=61581629313689"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-10 h-10 bg-slate-700 hover:bg-blue-600 rounded-full flex items-center justify-center transition-all duration-300 transform hover:scale-110 hover:rotate-12"

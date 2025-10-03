@@ -71,19 +71,19 @@ const Team = () => {
       id: 1,
       question: "How does the dashboard work?",
       answer:
-        "The dashboard aggregates news from multiple portals and displays current ocean conditions like oil slicks and temperature using NASA Earth data.",
+        "The dashboard aggregates news from multiple portals and displays current ocean conditions like sea surface roughness using Alaska Satellite Facility (ASF) Data with Oil slick and ocean litter visualization coming soon.",
     },
     {
       id: 2,
       question: "What kind of data is displayed?",
       answer:
-        "DHEU uses NASA Earth data and trusted news portals to simulate ocean conditions such as waste, chemical products, and temperature in a 2D interactive map.",
+        "DHEU uses NASA Earth Observation System (EOS) and RSS SMAP data and trusted news portals to simulate change in ocean conditions, such as temperature, biological composition, and temperature in visually stunning 2D maps.",
     },
     {
       id: 3,
       question: "Is this tool educational?",
       answer:
-        "Yes, DHEU aims to educate users on ocean health by providing real-time data and interactive simulations for better understanding.",
+        "Yes, DHEU aims to educate users on ocean health by providing real-time as well as historical simulations for better understanding.",
     },
     {
       id: 4,
@@ -95,7 +95,7 @@ const Team = () => {
       id: 5,
       question: "What data sources are used?",
       answer:
-        "DHEU uses NASA Earth data and trusted news portals to simulate ocean conditions such as waste, chemical products, and temperature in a 2D interactive map.",
+        "DHEU uses NASA Earth Observation System (EOS), RSS SMAP data, ASF data and trusted news portals to simulate ocean conditions such as temperature, biological composition, and temperature in visually stunning 2D maps.",
     },
     {
       id: 6,

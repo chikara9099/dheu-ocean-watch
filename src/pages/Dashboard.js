@@ -353,10 +353,10 @@ const Dashboard = () => {
                       </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="bg-white/60 backdrop-blur-sm rounded-xl p-4 text-center">
+                        {/* <div className="bg-white/60 backdrop-blur-sm rounded-xl p-4 text-center">
                           <p className="text-sm text-gray-600 mb-1">Valid Pixels</p>
                           <p className="text-2xl font-bold text-gray-800">{apiResponse.valid_pixels_count.toLocaleString()}</p>
-                        </div>
+                        </div> */}
                         <div className="bg-white/60 backdrop-blur-sm rounded-xl p-4 text-center">
                           <p className="text-sm text-gray-600 mb-1">Time Range</p>
                           <p className="text-sm font-semibold text-gray-800">{apiResponse.time_range.start}</p>
