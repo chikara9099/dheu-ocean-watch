@@ -214,7 +214,7 @@ function Home() {
               </div>
             </div>
 
-            {/* Center Column - Featured */}
+            {/* Center Column*/}
             <div className="space-y-8">
               <div className="bg-gradient-to-br from-blue-50 to-cyan-50 p-6 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 group border-2 border-blue-100">
                 <div className="overflow-hidden rounded-lg mb-4">
