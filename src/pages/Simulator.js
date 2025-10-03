@@ -363,7 +363,7 @@ export default function Simulator() {
               {/* Social Icons */}
               <div className="flex space-x-4">
                 <a
-                  href="https://www.facebook.com/"
+                  href="https://www.facebook.com/profile.php?id=61581629313689"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-10 h-10 bg-slate-700 hover:bg-blue-600 rounded-full flex items-center justify-center transition-all duration-300 transform hover:scale-110 hover:rotate-12"

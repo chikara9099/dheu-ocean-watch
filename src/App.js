@@ -1,4 +1,5 @@
 import React from 'react';
+import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 import Dashboard from './pages/Dashboard';
@@ -9,6 +10,76 @@ import DheuKids from './pages/DheuKids';
 
 
 function Home() {
+
+  const [openFaq, setOpenFaq] = useState(null);
+
+  useEffect(() => {
+      const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+      };
+      
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible');
+          }
+        });
+      }, observerOptions);
+      
+      const elementsToObserve = document.querySelectorAll('.scroll-reveal');
+      elementsToObserve.forEach(el => observer.observe(el));
+      
+      document.documentElement.style.scrollBehavior = 'smooth';
+      
+      return () => {
+        elementsToObserve.forEach(el => observer.unobserve(el));
+      };
+    }, []);
+
+  const faqs = [
+    {
+      id: 1,
+      question: "How does the dashboard work?",
+      answer:
+        "The dashboard aggregates news from multiple portals and displays current ocean conditions like sea surface roughness using Alaska Satellite Facility (ASF) Data with Oil slick and ocean litter visualization coming soon.",
+    },
+    {
+      id: 2,
+      question: "What kind of data is displayed?",
+      answer:
+        "DHEU uses NASA Earth Observation System (EOS) and RSS SMAP data and trusted news portals to simulate change in ocean conditions, such as temperature, biological composition, and temperature in visually stunning 2D maps.",
+    },
+    {
+      id: 3,
+      question: "Is this tool educational?",
+      answer:
+        "Yes, DHEU aims to educate users on ocean health by providing real-time as well as historical simulations for better understanding.",
+    },
+    {
+      id: 4,
+      question: "How is news shared across the platform?",
+      answer:
+        "News updates are aggregated from trusted environmental and scientific sources, then categorized for clarity and relevance.",
+    },
+    {
+      id: 5,
+      question: "What data sources are used?",
+      answer:
+        "DHEU uses NASA Earth Observation System (EOS), RSS SMAP data, ASF data and trusted news portals to simulate ocean conditions such as temperature, biological composition, and temperature in visually stunning 2D maps.",
+    },
+    {
+      id: 6,
+      question: "Who is Team Sargonauts?",
+      answer:
+        "Team SARgonauts is the group behind DHEU, dedicated to educating users about ocean health through innovative web tools.",
+    },
+  ];
+
+  const toggleFaq = (id) => {
+    setOpenFaq(openFaq === id ? null : id);
+  };
+
   return (
     <div className="font-sans text-gray-800 leading-relaxed">
       {/* Header / Navbar */}
@@ -284,6 +355,74 @@ function Home() {
         </div>
       </section>
 
+      {/* FAQ Section */}
+      <section className="py-24 bg-gradient-to-br from-slate-50 via-white to-blue-50 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-5">
+          <div className="absolute top-20 left-10 w-96 h-96 bg-blue-200/20 rounded-full mix-blend-multiply filter blur-xl animate-pulse"></div>
+          <div className="absolute bottom-20 right-10 w-80 h-80 bg-cyan-200/20 rounded-full mix-blend-multiply filter blur-xl animate-pulse delay-1000"></div>
+        </div>
+        <div className="container mx-auto px-6 relative z-10">
+          <div className="max-w-5xl mx-auto text-center mb-20">
+            <div className="inline-block mb-4">
+              <span className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white text-sm font-semibold py-2 px-6 rounded-full shadow-lg">
+                FAQs
+              </span>
+            </div>
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-800 mb-8 leading-tight">
+              Frequently Asked Questions
+            </h2>
+            <p className="text-xl text-gray-600 leading-relaxed">
+              Find answers to common questions about DHEU, our mission, and how we operate.
+            </p>
+          </div>
+
+          <div className="max-w-3xl mx-auto space-y-4">
+            {faqs.map((faq, index) => (
+              <div
+                key={faq.id}
+                className="bg-white/70 backdrop-blur-sm border border-white/50 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group scroll-reveal"
+                style={{ animationDelay: `${index * 100}ms` }}
+              >
+                <button
+                  onClick={() => toggleFaq(faq.id)}
+                  className="w-full px-6 py-5 text-left flex justify-between items-center bg-gradient-to-r from-transparent to-blue-50/30 hover:from-blue-50/30 hover:to-cyan-50/30 transition-all duration-300"
+                  aria-expanded={openFaq === faq.id}
+                >
+                  <span className="font-semibold text-gray-800 group-hover:text-blue-700 transition-colors duration-200">
+                    {faq.question}
+                  </span>
+                  <div className="relative">
+                    <div className="w-8 h-8 rounded-full bg-blue-100 group-hover:bg-blue-200 flex items-center justify-center transition-all duration-200">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className={`h-4 w-4 text-blue-600 transform transition-transform duration-300 ${
+                          openFaq === faq.id ? 'rotate-180' : ''
+                        }`}
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
+                  </div>
+                </button>
+
+                <div
+                  className={`overflow-hidden bg-white/50 backdrop-blur-sm transition-all duration-500 ease-out ${
+                    openFaq === faq.id ? 'max-h-48 opacity-100' : 'max-h-0 opacity-0'
+                  }`}
+                >
+                  <div className="px-6 py-5">
+                    <p className="text-gray-700 leading-relaxed">{faq.answer}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Get in Touch Section */}
       <section className="py-20 bg-gradient-to-b from-slate-50 to-white relative overflow-hidden">
         <div className="absolute inset-0 opacity-5">
@@ -378,7 +517,7 @@ function Home() {
               {/* Social Icons */}
               <div className="flex space-x-4">
                 <a
-                  href="https://www.facebook.com/"
+                  href="https://www.facebook.com/profile.php?id=61581629313689"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-10 h-10 bg-slate-700 hover:bg-blue-600 rounded-full flex items-center justify-center transition-all duration-300 transform hover:scale-110 hover:rotate-12"

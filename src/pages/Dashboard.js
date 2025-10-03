@@ -352,24 +352,6 @@ const Dashboard = () => {
                         <p className="text-gray-600 font-medium">Average Sea Roughness (VV Polarization)</p>
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        {/* <div className="bg-white/60 backdrop-blur-sm rounded-xl p-4 text-center">
-                          <p className="text-sm text-gray-600 mb-1">Valid Pixels</p>
-                          <p className="text-2xl font-bold text-gray-800">{apiResponse.valid_pixels_count.toLocaleString()}</p>
-                        </div> */}
-                        <div className="bg-white/60 backdrop-blur-sm rounded-xl p-4 text-center">
-                          <p className="text-sm text-gray-600 mb-1">Time Range</p>
-                          <p className="text-sm font-semibold text-gray-800">{apiResponse.time_range.start}</p>
-                          <p className="text-sm font-semibold text-gray-800">{apiResponse.time_range.end}</p>
-                        </div>
-                        <div className="bg-white/60 backdrop-blur-sm rounded-xl p-4 text-center">
-                          <p className="text-sm text-gray-600 mb-1">Area Covered</p>
-                          <p className="text-xs font-mono text-gray-700">
-                            [{apiResponse.bounding_box.map(c => c.toFixed(1)).join(', ')}]
-                          </p>
-                        </div>
-                      </div>
-
                       <div className="mt-6 p-4 bg-white/40 rounded-xl">
                         <p className="text-sm text-gray-600 italic text-center">
                           VV polarization backscatter indicates surface roughness. Lower values may indicate oil slicks or calm waters; higher values indicate rougher seas or wind effects.
@@ -403,7 +385,7 @@ const Dashboard = () => {
               {/* Social Icons */}
               <div className="flex space-x-4">
                 <a
-                  href="https://www.facebook.com/"
+                  href="https://www.facebook.com/profile.php?id=61581629313689"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-10 h-10 bg-slate-700 hover:bg-blue-600 rounded-full flex items-center justify-center transition-all duration-300 transform hover:scale-110 hover:rotate-12"
