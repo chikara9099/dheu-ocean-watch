@@ -50,7 +50,7 @@ const Team = () => {
       name: "Tasnim Tamal",
       role: "Frontend & Visualization Specialist",
       bio: "He brought the data to life through interactive dashboards, simulators, and compelling visual storytelling that drives user engagement. ",
-      image: "/assets/team-4.avif",
+      image: "/assets/tt.jpg",
     },
     {
       name: "Md. Sium",
