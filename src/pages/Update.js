@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 
 export default function Dashboard() {
-  const [currentIndex, setCurrentIndex] = useState(78.4); // SARgonauts index (0-100, higher = better)
+  const [currentIndex, setCurrentIndex] = useState(78.4);
   const [selectedLetter, setSelectedLetter] = useState(null);
   const [currentNews, setCurrentNews] = useState(0);
+  const [newsItems, setNewsItems] = useState([]);
+  const [newsLoading, setNewsLoading] = useState(true);
 
-  // Specific monitoring region
   const monitoringRegion = {
     name: "Bay of Bengal",
     coordinates: "21.0000° N, 90.0000° E",
@@ -13,7 +14,6 @@ export default function Dashboard() {
     countries: ["Bangladesh", "India", "Myanmar", "Sri Lanka", "Thailand"]
   };
 
-  // Sample dynamic data based on SARgonauts index (higher = better)
   const getSeverityLevel = (index) => {
     if (index >= 80) return { level: 'Excellent', color: 'from-green-500 to-emerald-600', urgency: 'CONTINUE EXCELLENT PRACTICES', bgColor: 'bg-green-50' };
     if (index >= 60) return { level: 'Good', color: 'from-blue-500 to-green-500', urgency: 'MAINTAIN CURRENT EFFORTS', bgColor: 'bg-blue-50' };
@@ -24,7 +24,6 @@ export default function Dashboard() {
 
   const severity = getSeverityLevel(currentIndex);
 
-  // Reward opportunities section
   const rewardOpportunities = [
     {
       title: "UNDP Ocean Innovation Challenge",
@@ -55,49 +54,6 @@ export default function Dashboard() {
     }
   ];
 
-  const newsItems = [
-    {
-      title: "Great Pacific Garbage Patch Reduction Initiative",
-      summary: "International cleanup efforts show 12% reduction in plastic concentration",
-      impact: "Positive",
-      date: "3 hours ago",
-      source: "Ocean Cleanup Foundation",
-      link: "https://theoceancleanup.com"
-    },
-    {
-      title: "Caribbean Coral Restoration Success",
-      summary: "New coral planting techniques show 78% survival rate in warming waters",
-      impact: "Positive",
-      date: "6 hours ago",
-      source: "Marine Biology Institute",
-      link: "https://www.nature.org"
-    },
-    {
-      title: "Arctic Sea Ice Monitoring Alert",
-      summary: "Accelerated melting rates detected in northern ice sheets",
-      impact: "High",
-      date: "12 hours ago",
-      source: "NOAA Climate Center",
-      link: "https://www.climate.gov"
-    },
-    {
-      title: "Phytoplankton Bloom Recovery",
-      summary: "North Atlantic shows increased marine productivity indicators",
-      impact: "Positive",
-      date: "1 day ago",
-      source: "NASA Earth Observatory",
-      link: "https://earthobservatory.nasa.gov"
-    }
-  ];
-
-  useEffect(() => {
-  const interval = setInterval(() => {
-    setCurrentNews((prev) => (prev + 1) % newsItems.length);
-  }, 6000);
-  return () => clearInterval(interval);
-}, [newsItems.length]);
-
-  // Dynamic open letters based on current conditions
   const openLetters = [
     {
       id: 1,
@@ -212,36 +168,133 @@ Application deadlines and funding details available on our portal.`
     }
   ];
 
-  // Gentle index variation
+  // Fetch ocean news from API
+  useEffect(() => {
+    const fetchNews = async () => {
+      try {
+        setNewsLoading(true);
+        const response = await fetch('https://dheu-backend.onrender.com/news/ocean-news?region=World&limit=4');
+        const data = await response.json();
+
+        // extract an array of items from multiple possible keys
+        let items = [];
+        if (Array.isArray(data)) {
+          items = data;
+        } else if (data) {
+          if (Array.isArray(data.data)) items = data.data;
+          else if (Array.isArray(data.news)) items = data.news;
+          else if (data.success && Array.isArray(data.data)) items = data.data;
+        }
+
+        if (items && items.length > 0) {
+          const transformedNews = items.map(item => ({
+            title: item.title || item.headline || 'No title',
+            //summary: item.description || item.summary || item.snippet || 'No description available',
+            //impact: item.sentiment === 'positive' ? 'Positive' : 
+                   //item.sentiment === 'negative' ? 'High' : 'Neutral',
+            date: item.publishedAt ? new Date(item.publishedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : (item.date || item.published_at || 'Unknown'),
+            //source: item.source || item.provider || 'Ocean News',
+            link: item.url || item.link || '#'
+          }));
+          setNewsItems(transformedNews);
+        } else {
+          // fallback static items 
+          setNewsItems([
+            {
+              title: "Great Pacific Garbage Patch Reduction Initiative",
+              summary: "International cleanup efforts show 12% reduction in plastic concentration",
+              impact: "Positive",
+              date: "3 hours ago",
+              source: "Ocean Cleanup Foundation",
+              link: "https://theoceancleanup.com"
+            },
+            {
+              title: "Caribbean Coral Restoration Success",
+              summary: "New coral planting techniques show 78% survival rate in warming waters",
+              impact: "Positive",
+              date: "6 hours ago",
+              source: "Marine Biology Institute",
+              link: "https://www.nature.org"
+            },
+            {
+              title: "Arctic Sea Ice Monitoring Alert",
+              summary: "Accelerated melting rates detected in northern ice sheets",
+              impact: "High",
+              date: "12 hours ago",
+              source: "NOAA Climate Center",
+              link: "https://www.climate.gov"
+            },
+            {
+              title: "Phytoplankton Bloom Recovery",
+              summary: "North Atlantic shows increased marine productivity indicators",
+              impact: "Positive",
+              date: "1 day ago",
+              source: "NASA Earth Observatory",
+              link: "https://earthobservatory.nasa.gov"
+            }
+          ]);
+        }
+      } catch (error) {
+        console.error('Error fetching ocean news:', error);
+        setNewsItems([
+          {
+            title: "Great Pacific Garbage Patch Reduction Initiative",
+            summary: "International cleanup efforts show 12% reduction in plastic concentration",
+            impact: "Positive",
+            date: "3 hours ago",
+            source: "Ocean Cleanup Foundation",
+            link: "https://theoceancleanup.com"
+          },
+          {
+            title: "Caribbean Coral Restoration Success",
+            summary: "New coral planting techniques show 78% survival rate in warming waters",
+            impact: "Positive",
+            date: "6 hours ago",
+            source: "Marine Biology Institute",
+            link: "https://www.nature.org"
+          },
+          {
+            title: "Arctic Sea Ice Monitoring Alert",
+            summary: "Accelerated melting rates detected in northern ice sheets",
+            impact: "High",
+            date: "12 hours ago",
+            source: "NOAA Climate Center",
+            link: "https://www.climate.gov"
+          },
+          {
+            title: "Phytoplankton Bloom Recovery",
+            summary: "North Atlantic shows increased marine productivity indicators",
+            impact: "Positive",
+            date: "1 day ago",
+            source: "NASA Earth Observatory",
+            link: "https://earthobservatory.nasa.gov"
+          }
+        ]);
+      } finally {
+        setNewsLoading(false);
+      }
+    };
+
+    fetchNews();
+  }, []);
+
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentIndex(prev => {
-        const variation = (Math.random() - 0.5) * 1.2; // Smaller variation
+        const variation = (Math.random() - 0.5) * 1.2;
         return Math.max(0, Math.min(100, prev + variation));
       });
-    }, 8000); // Slower updates
+    }, 8000);
     return () => clearInterval(interval);
   }, []);
 
   return (
     <>
-      {/* Header / Navbar */}
-      <header
-        id="header"
-        className="bg-white shadow-sm sticky top-0 z-50 transition-all duration-300 hover:shadow-lg"
-        style={{ height: '145px' }}
-      >
+      <header id="header" className="bg-white shadow-sm sticky top-0 z-50 transition-all duration-300 hover:shadow-lg" style={{ height: '145px' }}>
         <div className="container mx-auto px-4 flex items-center justify-between h-full">
-          {/* Logo */}
           <a href="/" className="block transform hover:scale-105 transition-transform duration-200">
-            <img
-              src="/assets/DHEU.png"
-              alt="DHEU logo"
-              className="h-20 md:h-24 transition-all duration-200"
-            />
+            <img src="/assets/DHEU.png" alt="DHEU logo" className="h-20 md:h-24 transition-all duration-200" />
           </a>
-
-          {/* Navigation */}
           <nav>
             <ul className="flex space-x-8">
               {[
@@ -253,10 +306,7 @@ Application deadlines and funding details available on our portal.`
                 { name: 'Team', href: '/team' },
               ].map((item) => (
                 <li key={item.name}>
-                  <a
-                    href={item.href}
-                    className="text-gray-700 hover:text-blue-600 font-medium transition-all duration-200 relative group"
-                  >
+                  <a href={item.href} className="text-gray-700 hover:text-blue-600 font-medium transition-all duration-200 relative group">
                     {item.name}
                     <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
                   </a>
@@ -267,15 +317,8 @@ Application deadlines and funding details available on our portal.`
         </div>
       </header>
 
-      {/* Hero Banner */}
       <section className="relative h-screen flex items-center justify-center text-center text-white overflow-hidden">
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 brightness-75"
-        >
+        <video autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 brightness-75">
           <source src="/assets/banner.mp4" type="video/mp4" />
         </video>
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/60"></div>
@@ -291,7 +334,6 @@ Application deadlines and funding details available on our portal.`
             Evidence-based calls to action for governments, industries, and communities to protect our marine ecosystems.
           </p>
 
-          {/* Current SARgonauts Index Display */}
           <div className="bg-black/30 backdrop-blur-md rounded-3xl p-8 mb-8 max-w-lg mx-auto hover:bg-black/40 transition-all duration-300 transform hover:scale-105">
             <div className="text-sm opacity-80 mb-2">Current SARgonauts Index</div>
             <div className="text-sm opacity-70 mb-4">{monitoringRegion.name} Region</div>
@@ -303,16 +345,12 @@ Application deadlines and funding details available on our portal.`
             <div className="text-xs mt-2 opacity-70">{monitoringRegion.coordinates}</div>
           </div>
 
-          <a
-            href="#letters"
-            className="inline-block bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-semibold py-4 px-10 rounded-2xl transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 shadow-lg"
-          >
+          <a href="#letters" className="inline-block bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-semibold py-4 px-10 rounded-2xl transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 shadow-lg">
             Read Open Letters
           </a>
         </div>
       </section>
 
-      {/* Reward Opportunities Section */}
       <section className="py-20 bg-gradient-to-br from-blue-600 via-cyan-600 to-teal-600 text-white">
         <div className="container mx-auto px-6 max-w-7xl">
           <div className="text-center mb-16">
@@ -324,17 +362,10 @@ Application deadlines and funding details available on our portal.`
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {rewardOpportunities.map((reward, index) => (
-              <div
-                key={index}
-                className="group bg-white/10 backdrop-blur-md rounded-3xl p-8 hover:bg-white/20 transition-all duration-500 border border-white/20 transform hover:scale-105 hover:-translate-y-2 cursor-pointer"
-                onClick={() => window.open(reward.link, '_blank')}
-              >
+              <div key={index} className="group bg-white/10 backdrop-blur-md rounded-3xl p-8 hover:bg-white/20 transition-all duration-500 border border-white/20 transform hover:scale-105 hover:-translate-y-2 cursor-pointer" onClick={() => window.open(reward.link, '_blank')}>
                 <div className="flex items-start justify-between mb-6">
                   <div className="text-4xl">{reward.icon}</div>
-                  <div className={`px-3 py-1 rounded-full text-xs font-semibold ${reward.category === 'Innovation' ? 'bg-purple-500/20 text-purple-200' :
-                    reward.category === 'Research' ? 'bg-blue-500/20 text-blue-200' :
-                      'bg-green-500/20 text-green-200'
-                    }`}>
+                  <div className={`px-3 py-1 rounded-full text-xs font-semibold ${reward.category === 'Innovation' ? 'bg-purple-500/20 text-purple-200' : reward.category === 'Research' ? 'bg-blue-500/20 text-blue-200' : 'bg-green-500/20 text-green-200'}`}>
                     {reward.category}
                   </div>
                 </div>
@@ -378,7 +409,6 @@ Application deadlines and funding details available on our portal.`
         </div>
       </section>
 
-      {/* SARgonauts Index Explanation */}
       <section className="py-20 bg-white">
         <div className="container mx-auto px-6 max-w-6xl">
           <div className="text-center mb-16">
@@ -427,7 +457,6 @@ Application deadlines and funding details available on our portal.`
         </div>
       </section>
 
-      {/* Open Letters Grid */}
       <main id="letters" className="py-20 bg-gradient-to-b from-slate-50 via-blue-50/20 to-white">
         <div className="container mx-auto px-6 max-w-7xl">
           <div className="text-center mb-16">
@@ -439,28 +468,17 @@ Application deadlines and funding details available on our portal.`
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
             {openLetters.map((letter, index) => (
-              <div
-                key={letter.id}
-                className="group bg-white rounded-3xl shadow-sm hover:shadow-2xl transition-all duration-500 overflow-hidden border border-gray-100 cursor-pointer transform hover:scale-105 hover:-translate-y-2"
-                onClick={() => setSelectedLetter(letter)}
-              >
-                {/* Image Section */}
+              <div key={letter.id} className="group bg-white rounded-3xl shadow-sm hover:shadow-2xl transition-all duration-500 overflow-hidden border border-gray-100 cursor-pointer transform hover:scale-105 hover:-translate-y-2" onClick={() => setSelectedLetter(letter)}>
                 <div className="relative overflow-hidden">
-                  <img
-                    src={letter.image}
-                    alt={letter.title}
-                    className="w-full h-64 object-cover transition-transform duration-700 group-hover:scale-110"
-                  />
+                  <img src={letter.image} alt={letter.title} className="w-full h-64 object-cover transition-transform duration-700 group-hover:scale-110" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
 
-                  {/* Urgency Badge */}
                   <div className="absolute top-6 left-6">
                     <div className={`px-4 py-2 rounded-full text-white font-bold text-sm bg-gradient-to-r ${severity.color} shadow-lg`}>
                       {letter.urgency}
                     </div>
                   </div>
 
-                  {/* Date */}
                   <div className="absolute bottom-6 right-6">
                     <div className="bg-black/40 backdrop-blur-sm px-4 py-2 rounded-full text-white text-sm font-medium">
                       {letter.date}
@@ -468,7 +486,6 @@ Application deadlines and funding details available on our portal.`
                   </div>
                 </div>
 
-                {/* Content Section */}
                 <div className="p-8 space-y-6">
                   <div>
                     <h3 className="text-2xl font-bold text-gray-800 mb-3 group-hover:text-blue-600 transition-colors duration-300">
@@ -486,43 +503,42 @@ Application deadlines and funding details available on our portal.`
             ))}
           </div>
 
-          {/* News Section */}
-        <section className="py-16 px-6 bg-gray-50">
-          <div className="container mx-auto max-w-6xl">
-            <div className="text-center space-y-4 mb-12">
-              <h2 className="text-3xl font-bold text-gray-800">Ocean Health Updates</h2>
-              <p className="text-gray-600">Latest developments in marine conservation and research</p>
-            </div>
+          <section className="py-16 px-6 bg-gray-50 mt-16 rounded-3xl">
+            <div className="container mx-auto max-w-6xl">
+              <div className="text-center space-y-4 mb-12">
+                <h2 className="text-3xl font-bold text-gray-800">Ocean Health Updates</h2>
+                <p className="text-gray-600">Latest developments in marine conservation and research</p>
+              </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {newsItems.map((news, index) => (
-                <a
-                  key={index}
-                  href={news.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`block bg-white rounded-xl p-5 shadow-sm hover:shadow-md transition-all duration-300 border ${index === currentNews ? 'border-blue-300 shadow-md' : 'border-gray-200'
-                    }`}
-                >
-                  <div className="flex justify-between items-start mb-3">
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${news.impact === 'Positive' ? 'bg-green-100 text-green-800' :
-                      news.impact === 'High' ? 'bg-orange-100 text-orange-800' :
-                        'bg-gray-100 text-gray-800'
-                      }`}>
-                      {news.impact}
-                    </span>
-                    <span className="text-xs text-gray-500">{news.date}</span>
-                  </div>
-                  <h4 className="font-semibold text-sm text-gray-800 mb-2">{news.title}</h4>
-                  <p className="text-xs text-gray-600 mb-3">{news.summary}</p>
-                  <p className="text-xs text-blue-600 font-medium">{news.source}</p>
-                </a>
-              ))}
+              {newsLoading ? (
+                <div className="flex justify-center items-center py-16">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  {newsItems.map((news, index) => (
+                    <a
+                      key={index}
+                      href={news.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`block bg-white rounded-3xl p-6 shadow-lg transform transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl border-2 ${index === currentNews ? 'border-blue-300' : 'border-blue-100 hover:border-blue-300'}`}>
+                      <div className="flex justify-between items-start mb-4">
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${news.impact === 'Positive' ? 'bg-green-100 text-green-800' : news.impact === 'High' ? 'bg-orange-100 text-orange-800' : 'bg-gray-100 text-gray-800'}`}>
+                          {news.impact || 'Info'}
+                        </span>
+                        <span className="text-xs text-gray-500">{news.date}</span>
+                      </div>
+                      <h4 className="font-semibold text-sm md:text-base text-gray-800 mb-3 leading-snug">{news.title}</h4>
+                      {news.summary && <p className="text-sm text-gray-600 mb-4">{news.summary}</p>}
+                      {news.source && <p className="text-sm text-blue-600 font-medium">{news.source}</p>}
+                    </a>
+                  ))}
+                </div>
+              )}
             </div>
-          </div>
-        </section>
+          </section>
 
-          {/* Call to Action */}
           <div className="mt-20 text-center">
             <div className="bg-white rounded-3xl p-12 shadow-xl border border-gray-100 max-w-4xl mx-auto">
               <h3 className="text-3xl font-bold text-gray-800 mb-6">Join the Advocacy Movement</h3>
@@ -540,10 +556,8 @@ Application deadlines and funding details available on our portal.`
             </div>
           </div>
         </div>
-
       </main>
 
-      {/* Enhanced Footer */}
       <footer className="bg-gradient-to-br from-slate-800 via-slate-900 to-gray-900 text-white py-12 relative overflow-hidden">
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-blue-600/20 via-transparent to-cyan-600/20"></div>
@@ -551,47 +565,26 @@ Application deadlines and funding details available on our portal.`
 
         <div className="container mx-auto px-4 relative z-10">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
-
-            {/* Connect Section */}
             <div className="space-y-6">
               <h4 className="text-xl font-bold text-white">Connect</h4>
               <p className="text-gray-400 text-sm leading-relaxed">
                 Stay updated with ocean health insights daily
               </p>
 
-              {/* Social Icons */}
               <div className="flex space-x-4">
-                <a
-                  href="https://www.facebook.com/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-10 h-10 bg-slate-700 hover:bg-blue-600 rounded-full flex items-center justify-center transition-all duration-300 transform hover:scale-110 hover:rotate-12"
-                  title="Facebook"
-                >
+                <a href="https://www.facebook.com/" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-slate-700 hover:bg-blue-600 rounded-full flex items-center justify-center transition-all duration-300 transform hover:scale-110 hover:rotate-12" title="Facebook">
                   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor">
                     <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.983h-1.5c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
                   </svg>
                 </a>
 
-                <a
-                  href="https://www.instagram.com/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-10 h-10 bg-slate-700 hover:bg-pink-600 rounded-full flex items-center justify-center transition-all duration-300 transform hover:scale-110 hover:rotate-12"
-                  title="Instagram"
-                >
+                <a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-slate-700 hover:bg-pink-600 rounded-full flex items-center justify-center transition-all duration-300 transform hover:scale-110 hover:rotate-12" title="Instagram">
                   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor">
                     <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
                   </svg>
                 </a>
 
-                <a
-                  href="https://twitter.com/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-10 h-10 bg-slate-700 hover:bg-gray-600 rounded-full flex items-center justify-center transition-all duration-300 transform hover:scale-110 hover:rotate-12"
-                  title="X (Twitter)"
-                >
+                <a href="https://twitter.com/" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-slate-700 hover:bg-gray-600 rounded-full flex items-center justify-center transition-all duration-300 transform hover:scale-110 hover:rotate-12" title="X (Twitter)">
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor">
                     <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.80l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
                   </svg>
@@ -599,27 +592,19 @@ Application deadlines and funding details available on our portal.`
               </div>
             </div>
 
-            {/* DHEU Ocean Watch Info */}
             <div className="space-y-4 text-center">
               <h4 className="text-xl font-bold">DHEU Ocean Watch</h4>
               <p className="text-gray-400 text-sm">Protecting our oceans through data.</p>
             </div>
 
-            {/* Newsletter Section */}
             <div className="space-y-6">
               <h4 className="text-xl font-bold text-white">Stay Updated</h4>
               <div className="space-y-4">
                 <label className="block">
                   <span className="text-sm font-medium text-gray-300 mb-2 block">Your Email Address</span>
-                  <input
-                    type="email"
-                    placeholder="Enter email here"
-                    className="w-full px-4 py-2.5 rounded-lg bg-slate-700/50 border border-slate-600 text-white placeholder-gray-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 outline-none transition-all duration-300 hover:bg-slate-700/70"
-                  />
+                  <input type="email" placeholder="Enter email here" className="w-full px-4 py-2.5 rounded-lg bg-slate-700/50 border border-slate-600 text-white placeholder-gray-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 outline-none transition-all duration-300 hover:bg-slate-700/70" />
                 </label>
-                <button
-                  className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-medium py-2.5 px-4 rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
-                >
+                <button className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-medium py-2.5 px-4 rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-lg">
                   Subscribe Now
                 </button>
               </div>
@@ -636,16 +621,9 @@ Application deadlines and funding details available on our portal.`
         </div>
       </footer>
 
-      {/* Letter Modal */}
       {selectedLetter && (
-        <div
-          className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4 backdrop-blur-sm"
-          onClick={() => setSelectedLetter(null)}
-        >
-          <div
-            className="bg-white rounded-3xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
-            onClick={e => e.stopPropagation()}
-          >
+        <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4 backdrop-blur-sm" onClick={() => setSelectedLetter(null)}>
+          <div className="bg-white rounded-3xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="p-8 md:p-12">
               <div className="flex justify-between items-start mb-8">
                 <div>
@@ -656,10 +634,7 @@ Application deadlines and funding details available on our portal.`
                     <span className="font-medium">Region:</span> {monitoringRegion.name} ({monitoringRegion.coordinates})
                   </div>
                 </div>
-                <button
-                  onClick={() => setSelectedLetter(null)}
-                  className="w-10 h-10 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center text-2xl text-gray-600 transition-colors duration-200"
-                >
+                <button onClick={() => setSelectedLetter(null)} className="w-10 h-10 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center text-2xl text-gray-600 transition-colors duration-200">
                   ×
                 </button>
               </div>
@@ -677,10 +652,7 @@ Application deadlines and funding details available on our portal.`
                 <button className="border-2 border-blue-600 text-blue-600 hover:bg-blue-50 font-semibold py-3 px-8 rounded-xl transition-all duration-300">
                   Download PDF
                 </button>
-                <button
-                  onClick={() => window.open('https://www.undp.org/ocean', '_blank')}
-                  className="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-8 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg"
-                >
+                <button onClick={() => window.open('https://www.undp.org/ocean', '_blank')} className="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-8 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg">
                   Apply for Funding
                 </button>
               </div>
@@ -688,104 +660,6 @@ Application deadlines and funding details available on our portal.`
           </div>
         </div>
       )}
-      <style jsx>{`
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(30px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        
-        @keyframes blob {
-          0%, 100% { transform: translate(0px, 0px) scale(1); }
-          33% { transform: translate(30px, -50px) scale(1.1); }
-          66% { transform: translate(-20px, 20px) scale(0.9); }
-        }
-        
-        @keyframes float {
-          0%, 100% { transform: translateY(0px) rotate(0deg); }
-          33% { transform: translateY(-10px) rotate(5deg); }
-          66% { transform: translateY(5px) rotate(-3deg); }
-        }
-        
-        @keyframes pulse-dot {
-          0%, 100% { opacity: 1; transform: scale(1); }
-          50% { opacity: 0.7; transform: scale(1.1); }
-        }
-        
-        @keyframes scroll-fade {
-          0% { opacity: 0; transform: translateY(20px); }
-          100% { opacity: 1; transform: translateY(0); }
-        }
-        
-        .animate-fadeIn {
-          animation: fadeIn 1s ease-out;
-        }
-        
-        .animate-blob {
-          animation: blob 7s infinite;
-        }
-        
-        .floating-particle {
-          animation: float 6s ease-in-out infinite;
-        }
-        
-        .pulse-dot {
-          animation: pulse-dot 2s ease-in-out infinite;
-        }
-        
-        .animation-delay-1000 {
-          animation-delay: 1s;
-        }
-        
-        .animation-delay-2000 {
-          animation-delay: 2s;
-        }
-        
-        .animation-delay-4000 {
-          animation-delay: 4s;
-        }
-        
-        .profile-card {
-          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-          transform-style: preserve-3d;
-        }
-        
-        .profile-card:hover {
-          box-shadow: 
-            0 25px 50px -12px rgba(0, 0, 0, 0.15),
-            0 0 0 1px rgba(59, 130, 246, 0.1),
-            0 0 30px rgba(59, 130, 246, 0.1);
-        }
-        
-        /* Smooth scroll observer animations */
-        .scroll-reveal {
-          opacity: 0;
-          transform: translateY(30px);
-          transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        
-        .scroll-reveal.is-visible {
-          opacity: 1;
-          transform: translateY(0);
-        }
-        
-        /* Custom scrollbar */
-        ::-webkit-scrollbar {
-          width: 8px;
-        }
-        
-        ::-webkit-scrollbar-track {
-          background: #f1f5f9;
-        }
-        
-        ::-webkit-scrollbar-thumb {
-          background: linear-gradient(to bottom, #3b82f6, #06b6d4);
-          border-radius: 4px;
-        }
-        
-        ::-webkit-scrollbar-thumb:hover {
-          background: linear-gradient(to bottom, #2563eb, #0891b2);
-        }
-      `}</style>
     </>
   );
 }
