@@ -467,7 +467,7 @@ const DheuKids = () => {
                   <div className="space-y-4">
                     {[
                       'NASA Earth Observation System (EOS) satellites provide temperature and color data',
-                      'ESA Sentinel missions monitor sea surface height and salinity',
+                      'ESA Sentinel missions and satellite altimeters operated by NASA and its partners monitor sea surface height and salinity',
                       'Synthetic Aperture Radar detects oil slicks and waste patches',
                       'Machine learning processes millions of data points daily'
                     ].map((item, index) => (

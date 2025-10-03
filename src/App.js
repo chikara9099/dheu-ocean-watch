@@ -48,7 +48,7 @@ function Home() {
       id: 2,
       question: "What kind of data is displayed?",
       answer:
-        "DHEU uses NASA Earth Observation System (EOS) and RSS SMAP data and trusted news portals to simulate change in ocean conditions, such as temperature, biological composition, and temperature in visually stunning 2D maps.",
+        "DHEU uses NASA Earth Observation System (EOS), RSS SMAP data, satellite altimeters operated by NASA and its partners (acquired from NASA's Scientific Visualization Studio) and trusted news portals to simulate change in ocean conditions, such as temperature, biological composition, and temperature in visually stunning 2D maps.",
     },
     {
       id: 3,
@@ -66,7 +66,7 @@ function Home() {
       id: 5,
       question: "What data sources are used?",
       answer:
-        "DHEU uses NASA Earth Observation System (EOS), RSS SMAP data, ASF data and trusted news portals to simulate ocean conditions such as temperature, biological composition, and temperature in visually stunning 2D maps.",
+        "DHEU uses NASA Earth Observation System (EOS), RSS SMAP data, ASF data, satellite altimeters operated by NASA and its partners (acquired from NASA's Scientific Visualization Studio) and trusted news portals to simulate ocean conditions such as temperature, biological composition, and temperature in visually stunning 2D maps.",
     },
     {
       id: 6,
